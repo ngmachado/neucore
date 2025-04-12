@@ -159,6 +159,11 @@ npm run lint
 - Implement database adapters for popular databases
 - Create higher-level agent abstractions
 
+
+## Research
+
+[NeuroCore](https://publish.obsidian.md/axe/projects/NeuroCore)
+
 ## Contributing
 
 As this project is in early development, please contact the maintainers before making significant contributions.
