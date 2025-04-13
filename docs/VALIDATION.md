@@ -1,8 +1,133 @@
-# NeuroCore Validation System
+# Validation System
 
-This validation system provides utilities for runtime type checking and data validation to help prevent logic errors, improve error messages, and ensure data integrity.
+The NeuroCore framework provides a standardized validation system to ensure consistency, reliability, and security across all components. This document outlines the validation utilities and how to use them in your code.
 
-> **Navigation**: [Back to README](../README.md) | [System Documentation](SYSTEM-DOCUMENTATION.md) | [Mock Migration](MOCK-MIGRATION.md)
+## Core Validation Principles
+
+1. **Centralized Validation**: All validation functionality is centralized in the `src/core/validation` module.
+2. **Consistent Error Handling**: Validation errors use a standardized format and provide meaningful error messages.
+3. **Reusable Utilities**: The validation system provides reusable utilities for common validation scenarios.
+4. **Type Safety**: Validation functions help ensure type safety throughout the codebase.
+
+## Using the Validation System
+
+### Basic Type Validation
+
+Use type validation functions to check the type of values:
+
+```typescript
+import { isString, isNumber, isBoolean, isObject, isArray } from '../core/validation';
+
+// Type checking
+if (isString(value)) {
+  // Handle string
+} else if (isNumber(value)) {
+  // Handle number
+}
+```
+
+### Value Requirements
+
+Use requirement functions to validate and ensure required values:
+
+```typescript
+import { 
+  requireValue, 
+  requireNonEmptyString,
+  requirePositiveNumber,
+  requireRange,
+  requireOneOf,
+  requireProperties
+} from '../core/validation';
+
+// Ensure a value is provided
+const id = requireValue(options.id, 'id');
+
+// Ensure a string is not empty
+const name = requireNonEmptyString(options.name, 'name');
+
+// Ensure a number is positive
+const count = requirePositiveNumber(options.count, 'count');
+
+// Ensure a number is within range
+const temperature = requireRange(options.temperature, 0, 1, 'temperature');
+
+// Ensure a value is one of allowed options
+const model = requireOneOf(options.model, ['gpt-4', 'claude-3'], 'model');
+
+// Ensure an object has required properties
+const config = requireProperties(options.config, ['apiKey', 'endpoint'], 'config');
+```
+
+### Parameter Validation
+
+For validating structured parameters against a schema:
+
+```typescript
+import { validateParameters, ParameterSchema } from '../core/validation';
+
+// Define parameter schema
+const paramSchema: ParameterSchema[] = [
+  {
+    name: 'query',
+    type: 'string',
+    required: true
+  },
+  {
+    name: 'limit',
+    type: 'number',
+    required: false
+  }
+];
+
+// Validate parameters
+const validationResult = validateParameters(userParams, paramSchema);
+if (!validationResult.valid) {
+  throw new Error(validationResult.error);
+}
+```
+
+### Action Definition Validation
+
+For validating action definitions:
+
+```typescript
+import { validateActionDefinition } from '../core/validation';
+
+// Validate an action definition
+validateActionDefinition(myActionDefinition);
+```
+
+## Extending the Validation System
+
+When adding new validation utilities:
+
+1. Add them to the `src/core/validation/index.ts` file
+2. Follow the existing naming patterns (`require*`, `is*`, `validate*`)
+3. Include comprehensive JSDoc comments
+4. Consider error message clarity and consistency
+
+## Best Practices
+
+1. **Use Early Validation**: Validate inputs at the entry point of functions or methods.
+2. **Provide Clear Paths**: Avoid complex conditional validation - provide clear success/failure paths.
+3. **Consistent Parameter Names**: Use the same parameter names throughout your validation.
+4. **Descriptive Error Messages**: Ensure error messages clearly indicate what went wrong.
+
+## Integration with Error Handling
+
+The validation system integrates with NeuroCore's error handling:
+
+```typescript
+import { ValidationError } from '../core/errors';
+
+try {
+  const value = requireNonEmptyString(input, 'input');
+  // Process valid value
+} catch (error) {
+  throw new ValidationError(`Invalid input: ${error.message}`);
+}
+```
 
 ## Purpose
 

@@ -36,8 +36,12 @@
         "node": ">=14.0.0"
     },
     "dependencies": {
+        "@types/body-parser": "^1.19.5",
+        "@types/express": "^5.0.1",
         "axios": "^1.8.4",
+        "body-parser": "^2.2.0",
         "dotenv": "^16.0.3",
+        "express": "^5.1.0",
         "node-fetch": "^3.3.2",
         "uuid": "^11.1.0"
     },

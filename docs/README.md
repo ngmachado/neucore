@@ -17,6 +17,7 @@ This directory contains comprehensive documentation for the NeuroCore framework.
   - [Future Reasoning Methods](README-future-methods.md) - Planned reasoning implementations
   - [Implementation Guide](IMPLEMENTATION-GUIDE.md) - Guide for implementing new reasoners
   - [Reasoning Index](REASONING-INDEX.md) - Index of reasoning system documentation
+- [Template System](template-system.md) - Dynamic content generation with variable substitution
 - [Validation System](VALIDATION.md) - Utilities for runtime type checking and validation
 - [Character Traits System](CHARACTER.md) - System for AI personality and traits
 

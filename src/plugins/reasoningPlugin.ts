@@ -255,12 +255,15 @@ export class ReasoningPlugin implements IPlugin {
     }
 
     /**
-     * Handle solving a problem
+     * Handle reasoning solve intent
      */
-    private async handleSolve(data: Record<string, any>, context: RequestContext): Promise<PluginResult> {
+    private async handleSolve(data: any, context: RequestContext): Promise<PluginResult> {
         const { problem, context: problemContext, options } = data || {};
 
+        console.log(`[REASONING] Processing solve request for problem: "${problem?.substring(0, 50)}..."`);
+
         if (!problem) {
+            console.log(`[REASONING] Error: Missing problem statement`);
             return {
                 success: false,
                 error: 'Problem statement is required'
@@ -271,6 +274,8 @@ export class ReasoningPlugin implements IPlugin {
         const isMessageResponse = problem.toLowerCase().includes('generate a response') ||
             problem.toLowerCase().includes('respond to');
 
+        console.log(`[REASONING] Problem type: ${isMessageResponse ? 'Message Response' : 'General Problem'}`);
+
         try {
             // Extract the original message if this is a response request
             let originalMessage = '';
@@ -278,39 +283,81 @@ export class ReasoningPlugin implements IPlugin {
                 const messageMatch = problem.match(/(?:to|for):?\s*["'](.+?)["']/i);
                 if (messageMatch) {
                     originalMessage = messageMatch[1];
+                    console.log(`[REASONING] Extracted original message: "${originalMessage}"`);
                 } else {
                     // Try another pattern to extract the message
                     const altMatch = problem.match(/respond to ['"](.*?)['"]|message: ['"](.*?)['"]|generate (?:a )?response (?:for|to) ['"](.*?)['"]/i);
                     if (altMatch) {
                         originalMessage = altMatch[1] || altMatch[2] || altMatch[3] || '';
+                        console.log(`[REASONING] Extracted original message (alt): "${originalMessage}"`);
                     }
                 }
             }
 
             // Format context for the model
             let formattedContext = this.formatContextForPrompt(problemContext, isMessageResponse);
+            console.log(`[REASONING] Formatted context with ${formattedContext ? formattedContext.length : 0} characters`);
 
             // Check if model provider is available
             if (this.modelProvider) {
+                console.log(`[REASONING] Using model provider for ${isMessageResponse ? 'message response' : 'problem solving'}`);
+                const startTime = Date.now();
+
                 // Use specialized prompting based on the task type
+                let result;
+
+                // Use the existing generateProblemSolution for both cases
+                // but log that we're using it for message response as a workaround
                 if (isMessageResponse) {
-                    return await this.generateMessageResponse(originalMessage || problem, formattedContext, options);
+                    console.log(`[REASONING] Using problem solution method for message response (simplified logging)`);
+                    result = await this.generateProblemSolution(originalMessage || problem, formattedContext, {
+                        ...options,
+                        systemContext: `You are responding as a helpful assistant in a conversation. 
+                        Your goal is to provide a natural, conversational response to: "${originalMessage}".
+                        
+                        Guidelines:
+                        - Keep your response concise but informative
+                        - Be direct and address the user's question or comment
+                        - Maintain a conversational tone throughout
+                        - If you're unsure, acknowledge your uncertainty rather than making things up
+                        - If the user's message includes multiple questions, address each one
+                        - Do NOT use phrases like "as an AI" or meta-commentary about being an assistant`
+                    });
                 } else {
-                    return await this.generateProblemSolution(problem, formattedContext, options);
+                    result = await this.generateProblemSolution(problem, formattedContext, options);
                 }
+
+                const processingTime = Date.now() - startTime;
+                console.log(`[REASONING] Generated solution in ${processingTime}ms`);
+
+                if (result.data?.solution) {
+                    console.log(`[REASONING] Solution length: ${result.data.solution.length} chars`);
+                }
+
+                return result;
             } else {
                 // Fallback logic when no model provider is available
+                console.log(`[REASONING] No model provider available, using fallback reasoning`);
                 this.logger.warn('No model provider available, using fallback reasoning logic');
 
                 // Generate a more dynamic fallback response
+                const startTime = Date.now();
+                let result;
+
                 if (isMessageResponse) {
-                    return this.generateFallbackMessageResponse(originalMessage || problem, problemContext);
+                    result = this.generateFallbackMessageResponse(originalMessage || problem, problemContext);
                 } else {
-                    return this.generateFallbackSolution(problem, problemContext);
+                    result = this.generateFallbackSolution(problem, []);
                 }
+
+                const processingTime = Date.now() - startTime;
+                console.log(`[REASONING] Generated fallback solution in ${processingTime}ms`);
+
+                return result;
             }
         } catch (error) {
-            this.logger.error(`Error solving problem: ${error}`);
+            console.log(`[REASONING] Error solving problem: ${error instanceof Error ? error.message : String(error)}`);
+            this.logger.error(`Error solving problem: ${error instanceof Error ? error.message : String(error)}`);
             return {
                 success: false,
                 error: error instanceof Error ? error.message : String(error),
@@ -363,119 +410,6 @@ export class ReasoningPlugin implements IPlugin {
     }
 
     /**
-     * Generate a response to a message using conversation-optimized prompting
-     */
-    private async generateMessageResponse(
-        message: string,
-        context: string,
-        options?: ReasoningOptions
-    ): Promise<PluginResult> {
-        if (!this.modelProvider) {
-            return {
-                success: false,
-                error: 'No AI provider available'
-            };
-        }
-
-        // Use a conversational system prompt for message responses
-        const systemPrompt = options?.systemContext ||
-            `You are a helpful, friendly assistant in a conversation. Your goal is to provide a natural, conversational response.
-            
-            Guidelines:
-            - Keep your response concise but informative
-            - Be direct and address the user's question or comment
-            - Maintain a conversational tone throughout
-            - If you're unsure, acknowledge your uncertainty rather than making things up
-            - If the user's message includes multiple questions, address each one
-            - Do NOT use phrases like "as an AI" or meta-commentary about being an assistant
-            
-            Below is some relevant context that may help you provide a better response.`;
-
-        // Optionally use a faster model for simple responses
-        const model = options?.model ||
-            (message.length < 100 ? 'gpt-3.5-turbo' : this.defaultModel);
-
-        // Build the completion request
-        const completionParams = {
-            model: model,
-            messages: [
-                {
-                    role: 'system',
-                    content: systemPrompt + context
-                },
-                {
-                    role: 'user',
-                    content: message
-                }
-            ],
-            temperature: options?.temperature || 0.7, // Higher temperature for more natural responses
-            maxTokens: options?.maxTokens || 600
-        };
-
-        try {
-            this.logger.debug('Generating message response with AI', {
-                messageLength: message.length,
-                model,
-                temperature: options?.temperature || 0.7
-            });
-
-            // Get the response from the model
-            const response = await this.modelProvider.generateCompletion(completionParams);
-
-            // Extract the solution from the response
-            let solution = '';
-
-            if (response.content) {
-                // Handle string content directly
-                if (typeof response.content === 'string') {
-                    solution = response.content;
-                }
-                // Handle array content (like from OpenAI)
-                else if (Array.isArray(response.content)) {
-                    solution = response.content
-                        .map(item => item.text || '')
-                        .join('');
-                }
-            }
-            // Handle OpenAI-style response where content is in choices[0].message.content
-            else if (response.choices && response.choices[0]?.message?.content) {
-                solution = response.choices[0].message.content;
-            }
-
-            // If we couldn't extract a solution, use a fallback
-            if (!solution || solution.trim().length === 0) {
-                solution = 'I was unable to generate a response at this time.';
-            }
-
-            const metadata: ReasoningMetadata = {
-                model: model,
-                approach: 'conversational',
-                timestamp: new Date().toISOString()
-            };
-
-            this.logger.debug('Successfully generated message response with AI', {
-                solutionLength: solution.length,
-                model
-            });
-
-            return {
-                success: true,
-                data: {
-                    solution,
-                    confidence: 0.9,
-                    metadata
-                }
-            };
-        } catch (error) {
-            this.logger.error('Error generating message response with AI:', error);
-
-            // Fall back to rule-based response generation
-            this.logger.info('Falling back to rule-based message response generation');
-            return this.generateFallbackMessageResponse(message, context as any);
-        }
-    }
-
-    /**
      * Generate a solution to a problem using task-optimized prompting
      */
     private async generateProblemSolution(
@@ -490,6 +424,10 @@ export class ReasoningPlugin implements IPlugin {
             };
         }
 
+        // Check if chain reasoning is enabled
+        const useChainedReasoning = options?.useChainedReasoning !== false;
+        console.log(`[REASONING-CHAIN] Chain reasoning enabled: ${useChainedReasoning}`);
+
         // Use a more structured, analytical system prompt for problem-solving
         const systemPrompt = options?.systemContext ||
             `You are an expert problem-solver with deep analytical abilities. Your task is to solve the given problem thoroughly and accurately.
@@ -500,11 +438,246 @@ export class ReasoningPlugin implements IPlugin {
             3. Provide a clear, detailed solution
             4. Explain your reasoning if appropriate
             5. Be precise and accurate in your response
+            6. Assess whether you have sufficient information to form a complete solution
+            
+            For complex problems, you should continue reasoning through multiple steps.
+            For simpler problems, you should provide a solution as soon as you have enough information.
+            When your reasoning is complete, indicate this by adding [SOLUTION_COMPLETE] at the end of your step.
             
             Below is context that may be relevant to solving this problem.`;
 
         // Use a more powerful model for complex problem-solving
         const model = options?.model || this.defaultModel;
+
+        if (useChainedReasoning) {
+            console.log(`[REASONING-CHAIN] Starting chain-of-thought reasoning process`);
+
+            // Define reasoning parameters
+            const maxSteps = options?.maxIterations || 8;
+            const temperature = options?.temperature || 0.7;
+            console.log(`[REASONING-CHAIN] Maximum steps: ${maxSteps}, Temperature: ${temperature}`);
+
+            // Initialize chain with first step
+            const steps = [];
+            let currentStep = `I need to solve this problem: "${problem}"\n\nI'll break this down into steps:`;
+            steps.push(currentStep);
+            console.log(`[REASONING-CHAIN] Step 0 (Problem): ${currentStep.substring(0, 100)}...`);
+
+            let solutionComplete = false;
+            let confidence = 0;
+
+            // Generate each reasoning step
+            for (let i = 0; i < maxSteps; i++) {
+                console.log(`[REASONING-CHAIN] Generating step ${i + 1} of ${maxSteps}`);
+
+                // Build the completion request for this step
+                const stepPrompt = `
+You are working through a reasoning problem step by step.
+Previous reasoning steps:
+${steps.join('\n\n')}
+
+Continue the reasoning process by generating the next step.
+After generating your step, evaluate whether you have enough information to provide a complete solution.
+
+Confidence Assessment:
+1. Assess your confidence in the solution on a scale of 0-100%
+2. If your confidence is 85% or higher, your reasoning is likely sufficient
+3. Consider the complexity of the problem and whether additional steps would meaningfully improve your answer
+
+If your reasoning is sufficient to solve the problem, end your response with:
+[CONFIDENCE: X%] [SOLUTION_COMPLETE]
+(where X is your confidence percentage)
+
+${i === maxSteps - 1 ? 'This should be the final step where you state your conclusion.' : ''}
+`;
+
+                try {
+                    const stepStartTime = Date.now();
+
+                    // Get the next step from the model
+                    const stepResponse = await this.modelProvider.generateCompletion({
+                        model: model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: systemPrompt
+                            },
+                            {
+                                role: 'user',
+                                content: stepPrompt + context
+                            }
+                        ],
+                        temperature: temperature,
+                        maxTokens: options?.maxTokens || 800
+                    });
+
+                    // Extract step content
+                    let stepContent = '';
+                    if (stepResponse.content) {
+                        // Handle string content directly
+                        if (typeof stepResponse.content === 'string') {
+                            stepContent = stepResponse.content;
+                        }
+                        // Handle array content
+                        else if (Array.isArray(stepResponse.content)) {
+                            stepContent = stepResponse.content
+                                .map(item => item.text || '')
+                                .join('');
+                        }
+                    }
+                    // Handle OpenAI-style response
+                    else if (stepResponse.choices && stepResponse.choices[0]?.message?.content) {
+                        stepContent = stepResponse.choices[0].message.content;
+                    }
+
+                    // Check if solution is complete
+                    let confidence = 0;
+                    const confidenceMatch = stepContent.match(/\[CONFIDENCE:\s*(\d+)%\]/i);
+                    if (confidenceMatch && confidenceMatch[1]) {
+                        confidence = parseInt(confidenceMatch[1], 10);
+                        stepContent = stepContent.replace(/\[CONFIDENCE:\s*\d+%\]/i, '').trim();
+                        console.log(`[REASONING-CHAIN] AI confidence level: ${confidence}%`);
+                    }
+
+                    if (stepContent.includes('[SOLUTION_COMPLETE]')) {
+                        solutionComplete = true;
+                        stepContent = stepContent.replace('[SOLUTION_COMPLETE]', '').trim();
+                        console.log(`[REASONING-CHAIN] AI signaled solution is complete at step ${i + 1} with ${confidence}% confidence`);
+                    }
+
+                    currentStep = stepContent;
+                    steps.push(currentStep);
+
+                    const stepTime = Date.now() - stepStartTime;
+                    console.log(`[REASONING-CHAIN] Step ${i + 1} generated in ${stepTime}ms`);
+                    console.log(`[REASONING-CHAIN] Step ${i + 1} content: ${currentStep.substring(0, 100)}...`);
+
+                    // Check if we've reached a conclusion or if the AI indicates the solution is complete
+                    if (solutionComplete ||
+                        currentStep.toLowerCase().includes('my final answer is') ||
+                        currentStep.toLowerCase().includes('in conclusion') ||
+                        currentStep.toLowerCase().includes('therefore, the solution') ||
+                        currentStep.toLowerCase().includes('thus, the answer')) {
+                        console.log(`[REASONING-CHAIN] Found conclusion in step ${i + 1}, stopping chain`);
+                        break;
+                    }
+                } catch (error) {
+                    console.log(`[REASONING-CHAIN] Error generating step ${i + 1}: ${error instanceof Error ? error.message : String(error)}`);
+                    break;
+                }
+            }
+
+            // Generate final solution based on all steps
+            console.log(`[REASONING-CHAIN] Generating final solution from ${steps.length} steps`);
+            const solutionStartTime = Date.now();
+
+            // Build prompt for final solution
+            const solutionPrompt = `
+You've completed a multi-step reasoning process to solve this problem:
+"${problem}"
+
+Your reasoning steps were:
+${steps.map((step, index) => `Step ${index}: ${step}`).join('\n\n')}
+
+Based on this reasoning, provide your final solution to the original problem. 
+Be concise but complete. Don't say "based on my reasoning" or repeat the steps.
+Just provide the solution directly.
+`;
+
+            try {
+                // Get the final solution from the model
+                const solutionResponse = await this.modelProvider.generateCompletion({
+                    model: model,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are providing the final solution to a problem after careful reasoning.'
+                        },
+                        {
+                            role: 'user',
+                            content: solutionPrompt
+                        }
+                    ],
+                    temperature: 0.3, // Lower temperature for final solution
+                    maxTokens: options?.maxTokens || 1000
+                });
+
+                // Extract solution content
+                let solution = '';
+                if (solutionResponse.content) {
+                    // Handle string content directly
+                    if (typeof solutionResponse.content === 'string') {
+                        solution = solutionResponse.content;
+                    }
+                    // Handle array content
+                    else if (Array.isArray(solutionResponse.content)) {
+                        solution = solutionResponse.content
+                            .map(item => item.text || '')
+                            .join('');
+                    }
+                }
+                // Handle OpenAI-style response
+                else if (solutionResponse.choices && solutionResponse.choices[0]?.message?.content) {
+                    solution = solutionResponse.choices[0].message.content;
+                }
+
+                const solutionTime = Date.now() - solutionStartTime;
+                console.log(`[REASONING-CHAIN] Final solution generated in ${solutionTime}ms`);
+                console.log(`[REASONING-CHAIN] Solution: ${solution.substring(0, 100)}...`);
+
+                // Extract basic metadata
+                const wordCount = solution.split(/\s+/).length;
+                const confidence = 0.9;  // Higher confidence for chain reasoning
+
+                // Return the result with chain steps as metadata
+                return {
+                    success: true,
+                    data: {
+                        solution,
+                        steps,
+                        metadata: {
+                            model,
+                            approach: 'chain-of-thought',
+                            stepCount: steps.length,
+                            maxSteps: maxSteps,
+                            earlyTermination: steps.length < maxSteps && solutionComplete,
+                            confidenceLevel: confidence,
+                            wordCount,
+                            timestamp: new Date().toISOString(),
+                            reasoning_chain: steps
+                        }
+                    }
+                };
+            } catch (error) {
+                console.log(`[REASONING-CHAIN] Error generating final solution: ${error instanceof Error ? error.message : String(error)}`);
+
+                // Fall back to using the last step as the solution
+                if (steps.length > 0) {
+                    const fallbackSolution = steps[steps.length - 1];
+
+                    return {
+                        success: true,
+                        data: {
+                            solution: fallbackSolution,
+                            steps,
+                            metadata: {
+                                model,
+                                approach: 'chain-of-thought-fallback',
+                                stepCount: steps.length,
+                                maxSteps: maxSteps,
+                                earlyTermination: steps.length < maxSteps && solutionComplete,
+                                confidenceLevel: confidence || 70, // Moderate confidence for fallback
+                                timestamp: new Date().toISOString(),
+                                reasoning_chain: steps
+                            }
+                        }
+                    };
+                }
+            }
+        }
+
+        // Single-step reasoning (original implementation for when chained reasoning is disabled)
+        console.log(`[REASONING] Using direct (non-chain) reasoning method`);
 
         // Build the completion request
         const completionParams = {
@@ -563,15 +736,14 @@ export class ReasoningPlugin implements IPlugin {
             const confidence = 0.85;  // Default confidence for a direct solution
 
             const metadata: ReasoningMetadata = {
-                wordCount,
                 model: model,
                 approach: 'analytical',
+                wordCount,
                 timestamp: new Date().toISOString()
             };
 
             this.logger.debug('Successfully generated problem solution with AI', {
                 solutionLength: solution.length,
-                wordCount,
                 model
             });
 
@@ -586,9 +758,20 @@ export class ReasoningPlugin implements IPlugin {
         } catch (error) {
             this.logger.error('Error generating problem solution with AI:', error);
 
-            // Fall back to rule-based solution generation
-            this.logger.info('Falling back to rule-based problem solution generation');
-            return this.generateFallbackSolution(problem, context as any);
+            // Create a fallback solution
+            const fallbackSolution = this.generateFallbackSolution(problem, []).data.solution;
+
+            return {
+                success: true,
+                data: {
+                    solution: fallbackSolution,
+                    confidence: 0.6,  // Lower confidence for fallback
+                    metadata: {
+                        approach: 'fallback',
+                        timestamp: new Date().toISOString()
+                    }
+                }
+            };
         }
     }
 
@@ -598,49 +781,17 @@ export class ReasoningPlugin implements IPlugin {
     private generateFallbackMessageResponse(message: string, contextItems: any[]): PluginResult {
         this.logger.debug('Generating fallback message response', { messageLength: message.length });
 
-        // Extract context content if available
-        const contextContent = Array.isArray(contextItems)
-            ? contextItems.map(item => typeof item === 'string' ? item :
-                (item.content?.text || JSON.stringify(item))).join(' ')
-            : '';
-
-        let response = '';
-
-        // Generate different responses based on message content
-        const lowerMessage = message.toLowerCase();
-
-        if (lowerMessage.includes('hello') || lowerMessage.includes('hi ') || lowerMessage.startsWith('hi') || lowerMessage.includes('hey')) {
-            response = 'Hello! How can I help you today?';
-        } else if (lowerMessage.includes('how are you')) {
-            response = "I'm doing well, thank you for asking! How can I assist you?";
-        } else if (lowerMessage.includes('thank')) {
-            response = "You're welcome! Let me know if you need anything else.";
-        } else if (lowerMessage.includes('?')) {
-            // For questions, provide a response indicating the system is processing
-            response = `I understand you're asking about "${message.replace(/\?/g, '')}". Let me think about that.`;
-
-            // Use context if available to enhance response
-            if (contextContent && contextContent.length > 0) {
-                // Extract potentially relevant keywords from context
-                const words = contextContent.split(/\s+/).filter(w => w.length > 4);
-                if (words.length > 0) {
-                    const randomWord = words[Math.floor(Math.random() * words.length)];
-                    response += ` Based on the information about "${randomWord}", I would recommend considering different approaches.`;
-                }
-            }
-        } else {
-            // Generic response for other messages
-            response = `I acknowledge your message about "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}". How would you like to proceed?`;
-        }
+        // Simple unavailability message instead of trying to fake intelligence
+        const response = "I'm sleeping now, try to awake me later.";
 
         return {
             success: true,
             data: {
                 solution: response,
-                confidence: 0.6,
+                confidence: 0.5,
                 metadata: {
                     model: 'fallback',
-                    approach: 'rule-based',
+                    approach: 'unavailable',
                     timestamp: new Date().toISOString()
                 }
             }
@@ -653,60 +804,8 @@ export class ReasoningPlugin implements IPlugin {
     private generateFallbackSolution(problem: string, contextItems: any[]): PluginResult {
         this.logger.debug('Generating fallback solution', { problemLength: problem.length });
 
-        // Extract context content if available
-        const contextContent = Array.isArray(contextItems)
-            ? contextItems.map(item => typeof item === 'string' ? item :
-                (item.content?.text || JSON.stringify(item))).join(' ')
-            : '';
-
-        let solution = '';
-        const problemLower = problem.toLowerCase();
-
-        // Generate response based on problem type
-        if (problemLower.includes('summarize') || problemLower.includes('summary')) {
-            solution = `Here's a summary of the key points:\n\n`;
-
-            if (contextContent && contextContent.length > 0) {
-                // Extract sentences for a summary
-                const sentences = contextContent.split(/[.!?]+/).filter(s => s.trim().length > 10);
-                const selectedSentences = sentences.slice(0, Math.min(3, sentences.length));
-
-                solution += selectedSentences.map(s => `- ${s.trim()}`).join('\n');
-            } else {
-                solution += `- Unable to generate a detailed summary without context\n- The requested topic appears to be about "${problem.substring(0, 40)}..."\n- Additional information would be needed for a comprehensive summary`;
-            }
-        } else if (problemLower.includes('analyze') || problemLower.includes('analysis')) {
-            solution = `Analysis of the problem:\n\n`;
-
-            if (contextContent && contextContent.length > 0) {
-                // Create a simple analysis based on word frequency
-                const words = contextContent.toLowerCase().split(/\W+/).filter(w => w.length > 4);
-                const wordFreq: Record<string, number> = {};
-
-                words.forEach(word => {
-                    wordFreq[word] = (wordFreq[word] || 0) + 1;
-                });
-
-                const topWords = Object.entries(wordFreq)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5);
-
-                solution += `1. Key topics identified: ${topWords.map(([word]) => word).join(', ')}\n`;
-                solution += `2. The context contains approximately ${words.length} significant words\n`;
-                solution += `3. This appears to be related to ${problemLower.substring(0, 30)}...`;
-            } else {
-                solution += `1. The problem statement is: "${problem}"\n`;
-                solution += `2. Without additional context, a comprehensive analysis is limited\n`;
-                solution += `3. Consider providing more details for a better analysis`;
-            }
-        } else {
-            // Generic problem solution
-            solution = `Regarding the problem: "${problem.substring(0, 50)}${problem.length > 50 ? '...' : ''}"\n\n`;
-            solution += `Based on the available information, here are some considerations:\n\n`;
-            solution += `1. The problem appears to be about ${problem.substring(0, 20)}...\n`;
-            solution += `2. Further investigation would be needed for a complete solution\n`;
-            solution += `3. Consider breaking this down into smaller, more manageable parts`;
-        }
+        // Simple unavailability message instead of trying to fake intelligence
+        const solution = "I'm sleeping now, try to awake me later.";
 
         return {
             success: true,
@@ -715,10 +814,10 @@ export class ReasoningPlugin implements IPlugin {
                 confidence: 0.5,
                 metadata: {
                     model: 'fallback',
-                    approach: 'rule-based',
+                    approach: 'unavailable',
                     timestamp: new Date().toISOString()
                 }
             }
         };
     }
-} 
+}

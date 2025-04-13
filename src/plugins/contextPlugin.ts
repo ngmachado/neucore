@@ -104,29 +104,77 @@ export class ContextPlugin implements IPlugin {
      */
     private async handleBuildContext(data: any, context: RequestContext): Promise<PluginResult> {
         const { query, options } = data || {};
+        console.log(`[CONTEXT] Building context for query: "${query?.substring(0, 50)}..."`);
 
         if (!query) {
+            console.log(`[CONTEXT] Error: Query is required for building context`);
             return {
                 success: false,
                 error: 'Query is required for building context'
             };
         }
 
-        // Mock context building
-        const contextItems = [
-            { id: '1', type: 'message', content: { text: 'This is a relevant message about ' + query } },
-            { id: '2', type: 'document', content: { text: 'Document containing information about ' + query } },
-            { id: '3', type: 'memory', content: { text: 'A memory related to ' + query } }
-        ];
+        console.log(`[CONTEXT] Context build options: ${JSON.stringify(options || {})}`);
+        const maxItems = options?.maxItems || 10;
+        const includeTypes = options?.includeTypes || ['message', 'document', 'memory'];
 
-        return {
-            success: true,
-            data: {
-                contextItems,
-                count: contextItems.length,
-                query
-            }
-        };
+        console.log(`[CONTEXT] Max items: ${maxItems}, Include types: ${includeTypes.join(', ')}`);
+
+        try {
+            // Mock context building
+            const contextStartTime = Date.now();
+
+            // Simulate semantic similarity search
+            console.log(`[CONTEXT] Performing semantic search for query`);
+
+            const contextItems = [
+                { id: '1', type: 'message', content: { text: 'This is a relevant message about ' + query } },
+                { id: '2', type: 'document', content: { text: 'Document containing information about ' + query } },
+                { id: '3', type: 'memory', content: { text: 'A memory related to ' + query } }
+            ];
+
+            // Filter by specified types if needed
+            const filteredItems = contextItems.filter(item => includeTypes.includes(item.type));
+            console.log(`[CONTEXT] Filtered items by type, found ${filteredItems.length} items`);
+
+            // Simulate relevance ranking
+            const rankedItems = [...filteredItems].sort(() => Math.random() - 0.5);
+            console.log(`[CONTEXT] Ranked items by relevance`);
+
+            // Limit to max items
+            const limitedItems = rankedItems.slice(0, maxItems);
+            console.log(`[CONTEXT] Limited to ${limitedItems.length} items of ${rankedItems.length} total`);
+
+            const contextBuildTime = Date.now() - contextStartTime;
+            console.log(`[CONTEXT] Context built in ${contextBuildTime}ms`);
+
+            // Log some details about the items
+            const itemTypes: Record<string, number> = {};
+            limitedItems.forEach(item => {
+                itemTypes[item.type] = (itemTypes[item.type] || 0) + 1;
+            });
+            console.log(`[CONTEXT] Item type distribution: ${JSON.stringify(itemTypes)}`);
+
+            return {
+                success: true,
+                data: {
+                    contextItems: limitedItems,
+                    count: limitedItems.length,
+                    query,
+                    metadata: {
+                        buildTime: `${contextBuildTime}ms`,
+                        types: itemTypes
+                    }
+                }
+            };
+        } catch (error) {
+            console.log(`[CONTEXT] Error building context: ${error instanceof Error ? error.message : String(error)}`);
+            this.logger.error(`Error building context: ${error instanceof Error ? error.message : String(error)}`);
+            return {
+                success: false,
+                error: `Failed to build context: ${error instanceof Error ? error.message : String(error)}`
+            };
+        }
     }
 
     /**

@@ -13,6 +13,7 @@ NeuroCore provides the essential building blocks for creating sophisticated AI a
 - **Memory Management**: Store and retrieve conversations, documents, and other data with vector embeddings for semantic search
 - **Context Building**: Intelligently select relevant context for LLM prompts
 - **Reasoning System**: Structured approaches to complex reasoning (Chain of Thought, etc.)
+- **Template System**: Dynamic content generation with variable substitution and formatting
 - **Action System**: Define and execute concrete operations with validation
 - **Character Traits System**: Define and apply consistent AI personalities and styles
 - **Model Context Protocol (MCP)**: Structured approach to AI interactions
@@ -124,6 +125,7 @@ neurcore/
 │   │   ├── reasoning/         # Reasoning system
 │   │   ├── character/         # Character traits system 
 │   │   ├── actions/           # Action system 
+│   │   ├── templates/         # Template system
 │   │   ├── rag/               # Retrieval Augmented Generation
 │   │   ├── goals/             # Goal management
 │   │   ├── providers/         # Model providers

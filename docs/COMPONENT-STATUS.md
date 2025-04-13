@@ -17,6 +17,7 @@ This document tracks the implementation status of NeuroCore components.
 | Context Builder | 🚧 | Works with limitations |
 | Reasoning - Chain of Thought | ✅ | Fully implemented |
 | Reasoning - Other Methods | 📝 | Only interfaces defined |
+| Template System | ✅ | Fully implemented |
 | Action System | 🚧 | Core functionality works |
 | RAG System | 🚧 | Basic implementation |
 | Goal Management | 🚧 | Core tracking works |

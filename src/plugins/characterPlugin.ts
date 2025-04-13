@@ -63,7 +63,8 @@ export class CharacterPlugin implements IPlugin {
     public supportedIntents(): string[] {
         return [
             'character:load',
-            'character:apply'
+            'character:apply',
+            'character:get'
         ];
     }
 
@@ -129,6 +130,8 @@ export class CharacterPlugin implements IPlugin {
                     return this.handleLoadCharacter(intent.data, context);
                 case 'character:apply':
                     return this.handleApplyCharacter(intent.data, context);
+                case 'character:get':
+                    return this.handleGetCharacter(intent.data, context);
                 default:
                     return {
                         success: false,
@@ -164,7 +167,8 @@ export class CharacterPlugin implements IPlugin {
                 return {
                     success: true,
                     data: {
-                        characterId: characterId
+                        characterId: characterId,
+                        character: this.characterCache.get(characterId)
                     }
                 };
             }
@@ -173,6 +177,8 @@ export class CharacterPlugin implements IPlugin {
             let character;
             const characterFilePath = filePath || path.join(this.charactersDir, `${characterId}.json`);
 
+            this.logger.info(`Attempting to load character from ${characterFilePath}`);
+
             if (fs.existsSync(characterFilePath)) {
                 try {
                     const fileContent = fs.readFileSync(characterFilePath, 'utf8');
@@ -180,13 +186,34 @@ export class CharacterPlugin implements IPlugin {
                     this.logger.info(`Character loaded from file: ${characterFilePath}`);
                 } catch (fileError) {
                     this.logger.error(`Error reading character file: ${fileError instanceof Error ? fileError.message : String(fileError)}`);
+                    // Continue to default character creation
+                }
+            } else {
+                this.logger.warn(`Character file not found at: ${characterFilePath}`);
+
+                // Ensure characters directory exists
+                if (!fs.existsSync(this.charactersDir)) {
+                    try {
+                        fs.mkdirSync(this.charactersDir, { recursive: true });
+                        this.logger.info(`Created characters directory at ${this.charactersDir}`);
+                    } catch (dirError) {
+                        this.logger.error(`Failed to create characters directory: ${dirError instanceof Error ? dirError.message : String(dirError)}`);
+                    }
                 }
             }
 
             // If not found, create a default character
             if (!character) {
-                this.logger.warn(`Character ${characterId} not found, creating default`);
+                this.logger.warn(`Character ${characterId} not found or invalid, creating default`);
                 character = this.createDefaultCharacter(characterId);
+
+                // Try to save the default character
+                try {
+                    fs.writeFileSync(characterFilePath, JSON.stringify(character, null, 2));
+                    this.logger.info(`Default character saved to ${characterFilePath}`);
+                } catch (saveError) {
+                    this.logger.error(`Failed to save default character: ${saveError instanceof Error ? saveError.message : String(saveError)}`);
+                }
             }
 
             // Store in cache
@@ -202,10 +229,10 @@ export class CharacterPlugin implements IPlugin {
                 }
             };
         } catch (error) {
-            this.logger.error('Error loading character:', error);
+            this.logger.error(`Error loading character: ${error instanceof Error ? error.message : String(error)}`);
             return {
                 success: false,
-                error: error instanceof Error ? error.message : String(error)
+                error: `Failed to load character: ${error instanceof Error ? error.message : String(error)}`
             };
         }
     }
@@ -229,45 +256,110 @@ export class CharacterPlugin implements IPlugin {
     }
 
     /**
-     * Handle applying a character's traits
+     * Handle applying character traits to content
      */
     private async handleApplyCharacter(data: any, context: RequestContext): Promise<PluginResult> {
         try {
-            const { characterId, content, options } = data || {};
+            const { characterId, content, options = {} } = data || {};
 
-            if (!characterId || !content) {
+            if (!characterId) {
                 return {
                     success: false,
-                    error: 'Character ID and content are required'
+                    error: 'Character ID is required'
                 };
             }
 
-            // Get character from cache
-            const character = this.characterCache.get(characterId);
+            if (!content) {
+                return {
+                    success: false,
+                    error: 'Content is required'
+                };
+            }
+
+            this.logger.info(`[CHARACTER] Applying traits for character ${characterId}`);
+            console.log(`[CHARACTER] Applying traits with content length: ${content.length}`);
+
+            // If content already has character formatting or solution template format, we want to be careful
+            if (content.includes('SOLUTION TEMPLATE') || content.includes(`As ${characterId}`)) {
+                // Clean up existing formatting
+                const cleanedContent = this.cleanTemplatePatterns(content);
+                console.log(`[CHARACTER] Content has existing formatting, cleaned content length: ${cleanedContent.length}`);
+
+                // Return the cleaned content directly to avoid recursive formatting
+                return {
+                    success: true,
+                    data: {
+                        content: cleanedContent
+                    }
+                };
+            }
+
+            // Get character from cache or load it
+            let character = this.characterCache.get(characterId);
+
             if (!character) {
-                return {
-                    success: false,
-                    error: `Character ${characterId} not found, load it first`
-                };
+                try {
+                    // Try to load the character
+                    const loadResult = await this.handleLoadCharacter({ characterId }, context);
+
+                    if (loadResult.success && loadResult.data.character) {
+                        character = loadResult.data.character;
+                    } else {
+                        // If load fails, create a default character
+                        character = this.createDefaultCharacter(characterId);
+                        this.characterCache.set(characterId, character);
+                        this.logger.warn(`Using default character for ${characterId} because loading failed`);
+                    }
+                } catch (loadError) {
+                    this.logger.error(`Failed to load character for trait application: ${loadError instanceof Error ? loadError.message : String(loadError)}`);
+                    // Return unmodified content and don't fail the request
+                    return {
+                        success: true,
+                        data: {
+                            content
+                        }
+                    };
+                }
             }
 
-            // First, clean any template patterns from the content
-            let cleanedContent = this.cleanTemplatePatterns(content);
+            // Choose between AI-based or rule-based trait application
+            const traitContext = options.context || 'chat';
+            let transformedContent: string;
 
-            // Apply character traits to the content
-            const personalizedContent = await this.applyTraitsToContent(cleanedContent, character, options);
+            if (this.modelProvider) {
+                console.log('[CHARACTER] Using AI provider for trait application');
+                try {
+                    transformedContent = await this.applyTraitsWithAI(content, character, traitContext);
+                    this.logger.info('[CHARACTER] Applied traits with AI provider');
+                } catch (aiError) {
+                    this.logger.error(`AI trait application failed: ${aiError instanceof Error ? aiError.message : String(aiError)}`);
+                    this.logger.info('Falling back to rule-based trait application');
+                    transformedContent = this.applyTraitsWithRules(content, character, traitContext);
+                }
+            } else {
+                console.log('[CHARACTER] Using rule-based trait application');
+                transformedContent = this.applyTraitsWithRules(content, character, traitContext);
+                this.logger.info('[CHARACTER] Applied traits with rules');
+            }
+
+            console.log(`[CHARACTER] Original content length: ${content.length}, Modified content length: ${transformedContent.length}`);
 
             return {
                 success: true,
                 data: {
-                    content: personalizedContent
+                    content: transformedContent
                 }
             };
         } catch (error) {
-            this.logger.error('Error applying character:', error);
+            this.logger.error(`Error applying character traits: ${error instanceof Error ? error.message : String(error)}`);
+
+            // Return original content on error
             return {
-                success: false,
-                error: error instanceof Error ? error.message : String(error)
+                success: true,
+                data: {
+                    content: data?.content || '',
+                    error: `Failed to apply traits: ${error instanceof Error ? error.message : String(error)}`
+                }
             };
         }
     }
@@ -334,59 +426,6 @@ export class CharacterPlugin implements IPlugin {
     }
 
     /**
-     * Apply character traits to content
-     */
-    private async applyTraitsToContent(content: string, character: any, options: any): Promise<string> {
-        const traitContext = options?.context || 'default';
-
-        // Extract traits that should be applied
-        const { personality, voice, style } = character.traits || {};
-
-        // If there's a model provider available, use it for better trait application
-        if (this.modelProvider) {
-            return this.applyTraitsWithAI(content, character, traitContext);
-        }
-
-        // Otherwise fall back to the rule-based implementation
-        // Apply personality tone
-        let result = content;
-
-        if (personality) {
-            // Add character personality hints
-            if (personality.includes('friendly')) {
-                result = this.addFriendlyTone(result);
-            }
-
-            if (personality.includes('professional')) {
-                result = this.addProfessionalTone(result);
-            }
-
-            if (personality.includes('humorous')) {
-                result = this.addHumorousTone(result);
-            }
-        }
-
-        // Apply voice characteristics if any
-        if (voice) {
-            result = this.applyVoiceStyle(result, voice);
-        }
-
-        // Apply writing style if any
-        if (style) {
-            result = this.applyWritingStyle(result, style);
-        }
-
-        // Add signature if appropriate for the context
-        if (traitContext === 'message' || traitContext === 'post') {
-            if (character.signature) {
-                result += `\n\n${character.signature}`;
-            }
-        }
-
-        return result;
-    }
-
-    /**
      * Apply character traits using AI model
      */
     private async applyTraitsWithAI(content: string, character: any, traitContext: string): Promise<string> {
@@ -441,7 +480,7 @@ export class CharacterPlugin implements IPlugin {
                 }
             ],
             temperature: 0.7,
-            maxTokens: Math.max(300, content.length * 1.5) // Allow some expansion but not too much
+            maxTokens: Math.round(Math.max(300, content.length * 1.5)) // Allow some expansion but not too much
         };
 
         try {
@@ -642,5 +681,54 @@ export class CharacterPlugin implements IPlugin {
         }
 
         return content;
+    }
+
+    /**
+     * Handle getting a character
+     */
+    private async handleGetCharacter(data: any, context: RequestContext): Promise<PluginResult> {
+        try {
+            const { characterId } = data || {};
+
+            if (!characterId) {
+                return {
+                    success: false,
+                    error: 'Character ID is required'
+                };
+            }
+
+            // Check cache first
+            if (this.characterCache.has(characterId)) {
+                this.logger.info(`Character ${characterId} retrieved from cache`);
+                return {
+                    success: true,
+                    data: {
+                        characterId,
+                        character: this.characterCache.get(characterId)
+                    }
+                };
+            }
+
+            // Try to load the character if not in cache
+            const loadResult = await this.handleLoadCharacter({ characterId }, context);
+            if (!loadResult.success) {
+                return loadResult;
+            }
+
+            // Return the loaded character
+            return {
+                success: true,
+                data: {
+                    characterId,
+                    character: this.characterCache.get(characterId)
+                }
+            };
+        } catch (error) {
+            this.logger.error(`Error getting character: ${error instanceof Error ? error.message : String(error)}`);
+            return {
+                success: false,
+                error: `Failed to get character: ${error instanceof Error ? error.message : String(error)}`
+            };
+        }
     }
 } 

@@ -4,6 +4,8 @@ import { getLogger } from './core/logging';
 import { AlfafrensPlugin } from './plugins/alfafrensPlugin';
 import { CharacterPlugin } from './plugins/characterPlugin';
 import { ReasoningPlugin } from './plugins/reasoningPlugin';
+import { ContextPlugin } from './plugins/contextPlugin';
+import { TemplatePlugin } from './plugins/templatePlugin';
 import { Intent } from './mcp/intent';
 import { LogLevel } from './types';
 import * as fs from 'fs';
@@ -161,6 +163,22 @@ async function initializeSystem() {
         mcp.registerPlugin(reasoningPlugin);
         await reasoningPlugin.initialize();
         logger.info('Reasoning plugin registered and initialized');
+
+        // Create and register the ContextPlugin
+        const contextPlugin = new ContextPlugin({
+            logger
+        });
+        mcp.registerPlugin(contextPlugin);
+        await contextPlugin.initialize();
+        logger.info('Context plugin registered and initialized');
+
+        // Create and register the TemplatePlugin
+        const templatePlugin = new TemplatePlugin({
+            logger
+        });
+        mcp.registerPlugin(templatePlugin);
+        await templatePlugin.initialize();
+        logger.info('Template plugin registered and initialized');
 
         // Create the Alfafrens plugin
         const alfafrensPlugin = new AlfafrensPlugin({

@@ -15,6 +15,7 @@ import { join, dirname } from 'path';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
+import { TemplateIntegration } from './alfafrens/templateIntegration';
 
 // Alfafrens specific types
 interface AlfaFrensConfig {
@@ -247,6 +248,7 @@ export class AlfafrensPlugin implements IPlugin {
         port: 3000,
         enabled: false
     };
+    private templateIntegration: TemplateIntegration | null = null;
 
     constructor(options: {
         memoryManager: any;
@@ -296,7 +298,8 @@ export class AlfafrensPlugin implements IPlugin {
             'alfafrens:replyMessage',
             'alfafrens:createPost',
             'alfafrens:startPolling',
-            'alfafrens:stopPolling'
+            'alfafrens:stopPolling',
+            'alfafrens:testAI'
         ];
     }
 
@@ -323,10 +326,37 @@ export class AlfafrensPlugin implements IPlugin {
             // Load the character for the bot
             if (!this.characterId) {
                 try {
+                    // Make sure the character file exists
+                    const characterFilePath = path.join(process.cwd(), 'data', 'characters', 'alfafrens-bot.json');
+                    if (!fs.existsSync(characterFilePath)) {
+                        this.logger.log(LogLevel.ERROR, `Character file does not exist at ${characterFilePath}`);
+                        // Create a basic character if it doesn't exist
+                        const basicCharacter = {
+                            id: "alfafrens-bot",
+                            name: "Alfafrens Assistant",
+                            description: "A helpful assistant for the Alfafrens community",
+                            traits: {
+                                personality: ["friendly", "helpful"],
+                                knowledge: ["Web3"],
+                                voice: ["clear", "conversational"],
+                                style: ["concise", "informative"]
+                            }
+                        };
+
+                        // Ensure directory exists
+                        const characterDir = path.dirname(characterFilePath);
+                        if (!fs.existsSync(characterDir)) {
+                            fs.mkdirSync(characterDir, { recursive: true });
+                        }
+
+                        fs.writeFileSync(characterFilePath, JSON.stringify(basicCharacter, null, 2));
+                        this.logger.log(LogLevel.INFO, `Created basic character file at ${characterFilePath}`);
+                    }
+
                     // Use character:load intent to load the character
                     const characterIntent = new Intent('character:load', {
                         characterId: 'alfafrens-bot',
-                        filePath: path.join(process.cwd(), 'data', 'characters', 'alfafrens-bot.json')
+                        filePath: characterFilePath
                     });
 
                     const result = await this.mcp.executeIntent(characterIntent);
@@ -349,6 +379,38 @@ export class AlfafrensPlugin implements IPlugin {
                 this.config.apiKey,
                 this.config.channelId
             );
+
+            // Initialize template integration
+            try {
+                this.templateIntegration = new TemplateIntegration({
+                    mcp: this.mcp,
+                    logger: this.logger,
+                    botConfig: this.config
+                });
+                await this.templateIntegration.initialize();
+                this.logger.log(LogLevel.INFO, 'Template integration initialized');
+
+                // Set character information if available
+                if (this.characterId) {
+                    // Load character traits
+                    const getCharacterIntent = new Intent('character:get', {
+                        characterId: this.characterId
+                    });
+
+                    const characterResult = await this.mcp.executeIntent(getCharacterIntent);
+
+                    if (characterResult.success && characterResult.data.character) {
+                        const character = characterResult.data.character;
+                        if (character.traits) {
+                            this.templateIntegration.setCharacter(this.characterId, character.traits);
+                            this.logger.log(LogLevel.DEBUG, 'Character traits set for template integration');
+                        }
+                    }
+                }
+            } catch (error) {
+                this.logger.log(LogLevel.ERROR, 'Failed to initialize template integration', error);
+                this.logger.log(LogLevel.WARN, 'Continuing without template formatting');
+            }
 
             this.initialized = true;
             this.logger.log(LogLevel.INFO, 'Alfafrens plugin initialized successfully');
@@ -414,6 +476,9 @@ export class AlfafrensPlugin implements IPlugin {
 
             case 'alfafrens:stopPolling':
                 return this.handleStopPolling(context);
+
+            case 'alfafrens:testAI':
+                return this.handleTestAI(intent.data, context);
 
             default:
                 return {
@@ -796,6 +861,30 @@ export class AlfafrensPlugin implements IPlugin {
             const characterResult = await this.mcp.executeIntent(applyTraitsIntent);
             if (characterResult.success && characterResult.data.content) {
                 responseContent = characterResult.data.content;
+            }
+
+            // Apply template formatting if available
+            if (this.templateIntegration) {
+                try {
+                    // Determine template usage from message content
+                    let templateUsage = 'standard';
+                    if (message.content.toLowerCase().includes('hello') || message.content.toLowerCase().includes('hi')) {
+                        templateUsage = 'greeting';
+                    } else if (message.content.includes('?')) {
+                        templateUsage = 'question';
+                    } else if (message.content.length > 200) {
+                        templateUsage = 'complex';
+                    }
+
+                    responseContent = await this.templateIntegration.formatResponse(
+                        message,
+                        responseContent,
+                        templateUsage
+                    );
+                    this.logger.log(LogLevel.DEBUG, `Applied template formatting (${templateUsage})`);
+                } catch (error) {
+                    this.logger.log(LogLevel.ERROR, 'Failed to apply template formatting', error);
+                }
             }
 
             // Send the response as a reply to the original message
@@ -1227,7 +1316,7 @@ export class AlfafrensPlugin implements IPlugin {
             // Prepare reasoning intent with debug info
             const options = {
                 useChainedReasoning: this.shouldUseChainedReasoning(message.content),
-                maxIterations: 3,
+                maxIterations: 20,
                 maxDepth: message.content.length > 100 ? 3 : 1,
                 temperature: 0.7,
                 systemContext: `You are responding as a helpful assistant in the Alfafrens community. 
@@ -1521,5 +1610,204 @@ export class AlfafrensPlugin implements IPlugin {
 </body>
 </html>
         `;
+    }
+
+    /**
+     * Handle testAI intent - generates a response to a test message
+     * without actually sending it to Alfafrens platform
+     */
+    private async handleTestAI(data: any, context: RequestContext): Promise<PluginResult> {
+        try {
+            const { message, username = 'TestUser' } = data || {};
+
+            if (!message) {
+                return {
+                    success: false,
+                    error: 'Message content is required'
+                };
+            }
+
+            this.logger.log(LogLevel.INFO, `[TEST-AI] Processing request from ${username}: "${message}"`);
+            console.log(`[TEST-AI] Starting processing for message: "${message}" from user: ${username}`);
+
+            // Create a simulated message object
+            const testMessage: AlfaFrensMessage = {
+                id: `test-${Date.now()}`,
+                senderId: 'test-user',
+                senderUsername: username,
+                content: message,
+                timestamp: new Date().toISOString()
+            };
+            console.log(`[TEST-AI] Created test message object with ID: ${testMessage.id}`);
+
+            // Generate a response using the same pipeline we use for real messages
+            // First, build context for the response
+            console.log(`[TEST-AI] Building context for message using context:build intent...`);
+            const contextIntent = new Intent('context:build', {
+                query: message,
+                options: {
+                    maxItems: 5,
+                    includeTypes: ['message']
+                }
+            });
+
+            console.log(`[TEST-AI] Executing context:build intent with query: "${message}"`);
+            const contextResult = await this.mcp.executeIntent(contextIntent);
+            console.log(`[TEST-AI] Context build result success: ${contextResult.success}`);
+            let contextItems = [];
+
+            if (contextResult.success && contextResult.data.contextItems) {
+                contextItems = contextResult.data.contextItems;
+                this.logger.log(LogLevel.DEBUG, `Generated context with ${contextItems.length} items`);
+                console.log(`[TEST-AI] Generated ${contextItems.length} context items`);
+                console.log(`[TEST-AI] Context items: ${JSON.stringify(contextItems.map((item: any) => ({ id: item.id, type: item.type })))}`);
+            } else {
+                console.log(`[TEST-AI] Failed to build context or no context items returned`);
+            }
+
+            // Use reasoning for the response
+            console.log(`[TEST-AI] Preparing reasoning intent with problem: "Generate a response to: "${message}""`);
+            const reasoningIntent = new Intent('reasoning:solve', {
+                problem: `Generate a response to: "${message}"`,
+                context: contextItems,
+                options: {
+                    useChainedReasoning: this.shouldUseChainedReasoning(message),
+                    maxTokens: 800,
+                    maxIterations: 20,
+                    temperature: 0.7,
+                    systemContext: `You are responding as a helpful assistant. 
+                                   The user is ${username}. Provide a direct, helpful response
+                                   that addresses their specific question.
+                                   
+                                   Always respond in a natural, conversational tone. Focus on providing 
+                                   valuable information rather than asking for clarification unless absolutely necessary.`
+                }
+            });
+
+            console.log(`[TEST-AI] Executing reasoning:solve intent with ${contextItems.length} context items`);
+            console.log(`[TEST-AI] Reasoning with chain: ${this.shouldUseChainedReasoning(message)}`);
+            const reasoningStart = Date.now();
+            const reasoningResult = await this.mcp.executeIntent(reasoningIntent);
+            const reasoningTime = Date.now() - reasoningStart;
+            console.log(`[TEST-AI] Reasoning completed in ${reasoningTime}ms, success: ${reasoningResult.success}`);
+
+            let responseContent = "";
+
+            if (reasoningResult.success && reasoningResult.data.solution) {
+                responseContent = reasoningResult.data.solution;
+                console.log(`[TEST-AI] Generated raw response: "${responseContent.substring(0, 50)}..."`);
+                this.logger.log(LogLevel.DEBUG, `Generated raw response with ${responseContent.length} characters`);
+            } else {
+                responseContent = "I'm currently unable to process your request. Please try again later.";
+                console.log(`[TEST-AI] Reasoning failed: ${reasoningResult.error || 'Unknown error'}`);
+                this.logger.log(LogLevel.ERROR, "Reasoning failed to generate test response", reasoningResult);
+
+                return {
+                    success: false,
+                    error: 'Failed to generate AI response',
+                    data: {
+                        errorDetails: reasoningResult.error
+                    }
+                };
+            }
+
+            // Apply character traits
+            if (this.characterId) {
+                console.log(`[TEST-AI] Applying character traits using character ID: ${this.characterId}`);
+                const applyTraitsIntent = new Intent('character:apply', {
+                    characterId: this.characterId,
+                    content: responseContent,
+                    options: {
+                        context: TraitContext.CHAT
+                    }
+                });
+
+                const characterStart = Date.now();
+                const characterResult = await this.mcp.executeIntent(applyTraitsIntent);
+                const characterTime = Date.now() - characterStart;
+                console.log(`[TEST-AI] Character traits applied in ${characterTime}ms, success: ${characterResult.success}`);
+
+                if (characterResult.success && characterResult.data.content) {
+                    console.log(`[TEST-AI] Original content length: ${responseContent.length}, New content length: ${characterResult.data.content.length}`);
+                    responseContent = characterResult.data.content;
+                    this.logger.log(LogLevel.DEBUG, `Applied character traits to response`);
+                } else {
+                    console.log(`[TEST-AI] Failed to apply character traits: ${characterResult.error || 'Unknown error'}`);
+                }
+            } else {
+                console.log(`[TEST-AI] No character ID available, skipping character trait application`);
+            }
+
+            // Apply template formatting if available
+            if (this.templateIntegration) {
+                try {
+                    console.log(`[TEST-AI] Applying template formatting to response`);
+
+                    // Determine template usage from message content
+                    let templateUsage = 'standard';
+                    if (message.toLowerCase().includes('hello') || message.toLowerCase().includes('hi')) {
+                        templateUsage = 'greeting';
+                    } else if (message.includes('?')) {
+                        templateUsage = 'question';
+                    } else if (message.length > 200) {
+                        templateUsage = 'complex';
+                    }
+
+                    console.log(`[TEST-AI] Selected template usage: ${templateUsage}`);
+                    const templateStart = Date.now();
+
+                    responseContent = await this.templateIntegration.formatResponse(
+                        testMessage,
+                        responseContent,
+                        templateUsage
+                    );
+
+                    const templateTime = Date.now() - templateStart;
+                    console.log(`[TEST-AI] Template formatting applied in ${templateTime}ms`);
+                    console.log(`[TEST-AI] Formatted response length: ${responseContent.length}`);
+                    this.logger.log(LogLevel.DEBUG, `Applied template formatting (${templateUsage}) to test response`);
+                } catch (error) {
+                    console.log(`[TEST-AI] Failed to apply template formatting: ${error instanceof Error ? error.message : String(error)}`);
+                    this.logger.log(LogLevel.ERROR, 'Failed to apply template formatting to test response', error);
+                }
+            } else {
+                console.log(`[TEST-AI] No template integration available, skipping template formatting`);
+            }
+
+            // Create a simulated response message
+            const responseMessage: AlfaFrensMessage = {
+                id: `test-response-${Date.now()}`,
+                senderId: this.config.userId,
+                senderUsername: this.config.username,
+                content: responseContent,
+                timestamp: new Date().toISOString(),
+                replyTo: testMessage.id
+            };
+
+            // Return the formatted response
+            this.logger.log(LogLevel.INFO, `[TEST-AI] Generated test response with ${responseContent.length} characters`);
+            console.log(`[TEST-AI] Final response: "${responseContent.substring(0, 50)}..."`);
+
+            return {
+                success: true,
+                data: {
+                    response: responseContent,
+                    message: responseMessage,
+                    originalMessage: testMessage,
+                    metadata: {
+                        reasoningTime,
+                        contextItems: contextItems.length
+                    }
+                }
+            };
+        } catch (error) {
+            this.logger.log(LogLevel.ERROR, 'Error processing test AI request', error);
+            console.error(`[TEST-AI] Error: ${error instanceof Error ? error.message : String(error)}`);
+
+            return {
+                success: false,
+                error: `Error generating test response: ${error instanceof Error ? error.message : String(error)}`
+            };
+        }
     }
 } 
