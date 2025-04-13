@@ -14,6 +14,7 @@ NeuroCore provides the essential building blocks for creating sophisticated AI a
 - **Context Building**: Intelligently select relevant context for LLM prompts
 - **Reasoning System**: Structured approaches to complex reasoning (Chain of Thought, etc.)
 - **Action System**: Define and execute concrete operations with validation
+- **Character Traits System**: Define and apply consistent AI personalities and styles
 - **Model Context Protocol (MCP)**: Structured approach to AI interactions
 - **Provider Adapters**: Support for multiple AI providers (currently Anthropic, with OpenAI planned)
 - **RAG System**: Enhance responses with knowledge retrieval and processing
@@ -114,12 +115,14 @@ neurcore/
 │   ├── SYSTEM-DOCUMENTATION.md # System overview
 │   ├── COMPONENT-STATUS.md   # Implementation status
 │   ├── REASONING.md          # Reasoning system docs
+│   ├── CHARACTER.md          # Character system docs
 │   └── ...                   # Other documentation
 ├── src/
 │   ├── core/                  # Core framework functionality
 │   │   ├── memory/            # Memory management
 │   │   ├── context/           # Context building
 │   │   ├── reasoning/         # Reasoning system
+│   │   ├── character/         # Character traits system 
 │   │   ├── actions/           # Action system 
 │   │   ├── rag/               # Retrieval Augmented Generation
 │   │   ├── goals/             # Goal management

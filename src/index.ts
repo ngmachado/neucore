@@ -18,9 +18,16 @@ export * from './core/rag';
 export * from './core/relationships';
 export * from './core/config';
 
-// MCP
+// Disabled due to missing module
+// export * from './core/reasoning';
+
+// MCP - explicitly export interfaces to avoid naming conflicts
 export { Intent } from './mcp/intent';
-export * from './mcp/interfaces/plugin';
+export {
+    IPlugin,
+    PluginResult,
+    RequestContext
+} from './mcp/interfaces/plugin';
 export * from './mcp/interfaces/provider';
 export * from './mcp/intentManager';
 export * from './mcp/mcp';

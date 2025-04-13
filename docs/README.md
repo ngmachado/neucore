@@ -18,6 +18,7 @@ This directory contains comprehensive documentation for the NeuroCore framework.
   - [Implementation Guide](IMPLEMENTATION-GUIDE.md) - Guide for implementing new reasoners
   - [Reasoning Index](REASONING-INDEX.md) - Index of reasoning system documentation
 - [Validation System](VALIDATION.md) - Utilities for runtime type checking and validation
+- [Character Traits System](CHARACTER.md) - System for AI personality and traits
 
 ### Development Guides
 

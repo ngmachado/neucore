@@ -18,73 +18,156 @@ export enum IntentFlags {
 }
 
 /**
- * Intent implementation for message routing
+ * Intent definition object
+ */
+export interface IntentDefinition {
+    action: string;
+    data?: Record<string, any>;
+    categories?: string[];
+    flags?: number;
+    type?: string;
+}
+
+/**
+ * Intent class for MCP
  */
 export class Intent {
     /**
-     * The action this intent requests
-     * Format typically uses namespaces like 'anthropic:generate'
+     * Action to perform
      */
-    action: string;
+    public readonly action: string;
 
     /**
-     * Intent categories for filtering
+     * Data for the intent
      */
-    categories: Set<string>;
+    public readonly data: Record<string, any>;
 
     /**
-     * Intent data payload
+     * Categories for the intent
      */
-    data?: any;
+    private categories: Set<string> = new Set();
 
     /**
-     * Intent flags for controlling behavior
+     * Extra data for the intent
      */
-    flags: number;
+    private extras: Map<string, any> = new Map();
 
     /**
-     * Optional MIME type
+     * Intent flags
      */
-    type?: string;
+    public flags: number = 0;
 
     /**
-     * Extra data map for additional parameters
+     * Intent type (optional)
      */
-    extras: Map<string, any>;
+    public type?: string;
 
     /**
-     * Create a new Intent
-     * 
-     * @param action Action name (required)
-     * @param data Optional data payload
+     * Create a new intent
+     * @param actionOrDefinition Action to perform or intent definition object
+     * @param data Data for the intent (if using string action)
      */
-    constructor(action: string, data?: any) {
-        this.action = action;
-        this.data = data;
-        this.categories = new Set();
-        this.flags = IntentFlags.NONE;
-        this.extras = new Map();
+    constructor(actionOrDefinition: string | IntentDefinition, data: Record<string, any> = {}) {
+        if (typeof actionOrDefinition === 'string') {
+            this.action = actionOrDefinition;
+            this.data = data;
+        } else {
+            this.action = actionOrDefinition.action;
+            this.data = actionOrDefinition.data || {};
+
+            // Set optional properties from definition
+            if (actionOrDefinition.categories) {
+                actionOrDefinition.categories.forEach(category => this.addCategory(category));
+            }
+
+            if (actionOrDefinition.flags !== undefined) {
+                this.flags = actionOrDefinition.flags;
+            }
+
+            if (actionOrDefinition.type) {
+                this.type = actionOrDefinition.type;
+            }
+        }
     }
 
     /**
-     * Add a category to this intent
-     * 
+     * Add a category to the intent
      * @param category Category to add
-     * @returns this intent for chaining
+     * @returns This intent for chaining
      */
-    addCategory(category: string): Intent {
+    public addCategory(category: string): Intent {
         this.categories.add(category);
         return this;
     }
 
     /**
-     * Check if intent has a specific category
-     * 
+     * Check if the intent has a category
      * @param category Category to check
-     * @returns Whether the category exists
+     * @returns Whether the intent has the category
      */
-    hasCategory(category: string): boolean {
+    public hasCategory(category: string): boolean {
         return this.categories.has(category);
+    }
+
+    /**
+     * Get all categories
+     * @returns Array of categories
+     */
+    public getCategories(): string[] {
+        return Array.from(this.categories);
+    }
+
+    /**
+     * Set flags on this intent
+     * 
+     * @param flags Flags to set
+     * @returns this intent for chaining
+     */
+    setFlags(flags: number): Intent {
+        this.flags = flags;
+        return this;
+    }
+
+    /**
+     * Put extra data into the intent
+     * @param key Key for the data
+     * @param value Value to store
+     * @returns This intent for chaining
+     */
+    public putExtra(key: string, value: any): Intent {
+        this.extras.set(key, value);
+        return this;
+    }
+
+    /**
+     * Get extra data from the intent
+     * @param key Key for the data
+     * @param defaultValue Default value if not found
+     * @returns The value or default
+     */
+    public getExtra<T>(key: string, defaultValue?: T): T | undefined {
+        return this.extras.has(key) ? this.extras.get(key) as T : defaultValue;
+    }
+
+    /**
+     * Check if the intent has extra data
+     * @param key Key for the data
+     * @returns Whether the intent has the data
+     */
+    public hasExtra(key: string): boolean {
+        return this.extras.has(key);
+    }
+
+    /**
+     * Get all extras as an object
+     * @returns Object of all extras
+     */
+    public getExtras(): Record<string, any> {
+        const result: Record<string, any> = {};
+        for (const [key, value] of this.extras.entries()) {
+            result[key] = value;
+        }
+        return result;
     }
 
     /**
@@ -117,29 +200,6 @@ export class Intent {
     setType(type: string): Intent {
         this.type = type;
         return this;
-    }
-
-    /**
-     * Add extra data to the intent
-     * 
-     * @param key Extra data key
-     * @param value Extra data value
-     * @returns this intent for chaining
-     */
-    putExtra(key: string, value: any): Intent {
-        this.extras.set(key, value);
-        return this;
-    }
-
-    /**
-     * Get an extra value
-     * 
-     * @param key Extra data key
-     * @param defaultValue Default value if not found
-     * @returns The extra value or default
-     */
-    getExtra<T>(key: string, defaultValue?: T): T | undefined {
-        return this.extras.has(key) ? this.extras.get(key) : defaultValue;
     }
 
     /**

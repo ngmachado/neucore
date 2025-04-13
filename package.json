@@ -5,8 +5,9 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && cp src/plugins/plugin-config.json dist/plugins/",
         "dev": "tsc --watch",
+        "start": "node dist/app.js",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
@@ -36,6 +37,7 @@
     },
     "dependencies": {
         "axios": "^1.8.4",
+        "dotenv": "^16.0.3",
         "node-fetch": "^3.3.2",
         "uuid": "^11.1.0"
     },

@@ -9,6 +9,7 @@ export * from './modelProvider';
 
 // Export concrete provider implementations
 export * from './anthropicProvider';
+export * from './openaiProvider';
 
 // Export provider factory
 import {
@@ -17,6 +18,7 @@ import {
     CompletionResponse
 } from './modelProvider';
 import { AnthropicProvider, AnthropicConfig } from './anthropicProvider';
+import { OpenAIProvider, OpenAIConfig } from './openaiProvider';
 
 /**
  * Provider factory configuration
@@ -28,13 +30,9 @@ export interface ProviderFactoryConfig {
     anthropic?: AnthropicConfig;
 
     /**
-     * OpenAI provider configuration (when implemented)
+     * OpenAI provider configuration
      */
-    openai?: {
-        apiKey: string;
-        organization?: string;
-        defaultModel?: string;
-    };
+    openai?: OpenAIConfig;
 
     /**
      * Default provider to use
@@ -68,7 +66,10 @@ export class ProviderFactory {
             this.providers.set('anthropic', new AnthropicProvider(this.config.anthropic));
         }
 
-        // OpenAI will be added when implemented
+        // Initialize OpenAI if configured
+        if (this.config.openai) {
+            this.providers.set('openai', new OpenAIProvider(this.config.openai));
+        }
     }
 
     /**
@@ -80,7 +81,8 @@ export class ProviderFactory {
         // If no name is specified, use default
         if (!providerName) {
             providerName = this.config.defaultProvider ||
-                (this.config.anthropic ? 'anthropic' : undefined);
+                (this.config.anthropic ? 'anthropic' :
+                    this.config.openai ? 'openai' : undefined);
         }
 
         // No provider available

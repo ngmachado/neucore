@@ -2,39 +2,30 @@
  * Message Content Protocol (MCP) Implementation
  */
 
-import { UUID } from '../types';
-import { Intent } from './intent';
 import { IPlugin } from './interfaces/plugin';
-import { IntentManager } from './intentManager';
+import { Intent } from './intent';
 import { PluginManager } from './pluginManager';
 import { ProviderManager } from './providerManager';
 import { generateUUID } from '../utils';
 
 /**
- * MCP configuration
+ * Configuration for MCP
  */
-export interface MCPConfig {
-    maxConcurrentIntents?: number;
-    intentTimeout?: number;
-    defaultPlugin?: IPlugin;
+interface MCPConfig {
+    // Configuration options
 }
 
 /**
- * MCP class for managing intents, plugins, and providers
+ * Message Control Protocol
+ * Central orchestrator for intent handling
  */
 export class MCP {
-    private intentManager: IntentManager;
     private pluginManager: PluginManager;
     private providerManager: ProviderManager;
     private config: MCPConfig;
 
     constructor(config: MCPConfig = {}) {
-        this.config = {
-            maxConcurrentIntents: 10,
-            intentTimeout: 30000,
-            ...config
-        };
-        this.intentManager = new IntentManager();
+        this.config = config;
         this.pluginManager = new PluginManager();
         this.providerManager = new ProviderManager();
     }
@@ -43,47 +34,35 @@ export class MCP {
      * Initialize MCP
      */
     public async initialize(): Promise<void> {
-        await this.pluginManager.initialize();
+        // Initialize components
         await this.providerManager.initialize();
-    }
-
-    /**
-     * Register a plugin
-     */
-    public registerPlugin(plugin: IPlugin): void {
-        this.pluginManager.registerPlugin(plugin);
-    }
-
-    /**
-     * Unregister a plugin
-     */
-    public unregisterPlugin(pluginId: UUID): void {
-        this.pluginManager.unregisterPlugin(pluginId);
-    }
-
-    /**
-     * Register an intent
-     */
-    public registerIntent(intent: Intent): UUID {
-        return this.intentManager.registerIntent(intent);
-    }
-
-    /**
-     * Execute an intent
-     */
-    public async executeIntent(intent: Intent): Promise<any> {
-        const plugin = this.pluginManager.getPluginForIntent(intent);
-        if (!plugin) {
-            throw new Error(`No plugin found for intent: ${intent.action}`);
-        }
-        return plugin.execute(intent, { requestId: generateUUID(), userId: 'system' });
     }
 
     /**
      * Shutdown MCP
      */
     public async shutdown(): Promise<void> {
-        await this.pluginManager.shutdown();
+        // Shutdown components
         await this.providerManager.shutdown();
+    }
+
+    /**
+     * Register a plugin
+     * @param plugin Plugin to register
+     */
+    public registerPlugin(plugin: IPlugin): void {
+        this.pluginManager.registerPlugin(plugin);
+    }
+
+    /**
+     * Execute an intent
+     * @param intent Intent to execute
+     */
+    public async executeIntent(intent: Intent): Promise<any> {
+        const plugin = this.pluginManager.findPluginForIntent(intent);
+        if (!plugin) {
+            throw new Error(`No plugin found for intent: ${intent.action}`);
+        }
+        return plugin.execute(intent, { requestId: generateUUID(), userId: 'system', mcp: this });
     }
 } 

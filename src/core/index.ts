@@ -1,5 +1,5 @@
 /**
- * Core module exports
+ * Core module exports for NeuroCore
  */
 
 // Configuration
@@ -36,4 +36,16 @@ export * from './context';
 export * from './providers';
 
 // MCP - Message Content Protocol
-export * from '../mcp'; 
+export * from '../mcp';
+
+// Character and traits
+export * from './character';
+
+// Validation
+export * from './validation';
+
+// Disabled due to missing module
+// export * from './reasoning';
+
+// Reasoning system
+// export * from './reasoning'; 
