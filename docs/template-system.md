@@ -1,161 +1,81 @@
-# Template System
+# neucore Template System
 
-The Neurocore framework includes a powerful template system for dynamic content generation with variable substitution. This system allows plugins to create, manage, and render templates with placeholders that are replaced with context-specific values at runtime.
+> **Navigation**: [Back to README](../README.md) | [System Documentation](SYSTEM-DOCUMENTATION.md)
 
-## Core Components
+The neucore framework includes a powerful template system for dynamic content generation with variable substitution. This system allows plugins to create, manage, and render templates with placeholders that are replaced with context-specific values at runtime.
 
-The template system consists of several core components:
+## Key Features
 
-### TemplateRegistry
+- **Variable Substitution**: Replace placeholders with dynamic values
+- **Template Management**: Store and retrieve templates by category, usage, and tags
+- **Conditional Rendering**: Include or exclude content based on conditions
+- **Custom Data Providers**: Add custom variable namespaces
+- **Response Formatting**: Improve readability of generated content
 
-The `TemplateRegistry` manages the storage and retrieval of templates:
+## Template Engine
 
-- Register individual templates or collections of templates
-- Find templates based on category, usage, tags, or custom criteria
-- Select the best matching template based on priority
+The `TemplateEngine` class is responsible for:
+1. Managing template storage
+2. Registering data providers
+3. Rendering templates with variables
 
-### TemplateDataRegistry & Providers
-
-The data provider system manages variable values for template rendering:
-
-- `ITemplateDataProvider` interface for implementing custom data providers
-- Namespace-based variable organization (e.g., `message.username`, `bot.name`)
-- Priority-based provider resolution
-
-### TemplateEngine
-
-The `TemplateEngine` handles the parsing and rendering of templates:
-
-- Replace placeholders in template content with actual values
-- Support for dot notation path resolution (e.g., `{{message.sender.username}}`)
-- Error handling for missing values
-
-## Using Templates
-
-### Basic Template Usage
-
-Templates can be registered and retrieved using the `TemplatePlugin` through intents:
+### Basic Usage
 
 ```typescript
+import { TemplateEngine } from 'neucore';
+
+// Create a template engine
+const templateEngine = new TemplateEngine();
+
 // Register a template
-const registerIntent = new Intent('template:register', {
-  template: {
-    id: 'my-template',
-    category: 'response',
-    content: 'Hello {{message.username}}!',
-    metadata: {
-      usage: 'greeting',
-      priority: 100,
-      pluginId: 'my-plugin'
-    }
-  }
+templateEngine.registerTemplate({
+  id: 'greeting',
+  content: 'Hello, {{user.name}}! Welcome to {{system.appName}}.',
+  category: 'messages',
+  usage: 'welcome',
+  priority: 10
 });
 
-// Execute the intent
-const registerResult = await mcp.executeIntent(registerIntent);
-
-// Render a template
-const renderIntent = new Intent('template:render', {
-  templateId: 'my-template',
-  variables: {
-    message: {
-      username: 'John'
-    }
-  }
+// Render the template
+const rendered = await templateEngine.renderTemplate('greeting', {
+  user: { name: 'Alice' },
+  system: { appName: 'My App' }
 });
 
-const renderResult = await mcp.executeIntent(renderIntent);
-console.log(renderResult.data.rendered); // Outputs: "Hello John!"
+// Output: "Hello, Alice! Welcome to My App."
 ```
 
-### Template Selection
+### Data Providers
 
-Templates can be selected based on various criteria:
+Data providers supply variables for template rendering:
 
 ```typescript
-const getIntent = new Intent('template:get', {
-  options: {
-    category: 'response',
-    usage: 'greeting',
-    tags: ['formal'],
-    pluginId: 'my-plugin'
-  }
+templateEngine.registerDataProvider('user', async (context) => {
+  return {
+    name: context.userData.name,
+    role: context.userData.role,
+    lastLogin: formatDate(context.userData.lastLogin)
+  };
 });
-
-const getResult = await mcp.executeIntent(getIntent);
-const templates = getResult.data.templates;
 ```
 
-## Creating Data Providers
+### Conditional Templates
 
-Custom data providers can be created by implementing the `ITemplateDataProvider` interface:
-
-```typescript
-import { ITemplateDataProvider } from '../../core/templates/dataProvider';
-
-export class UserDataProvider implements ITemplateDataProvider {
-  public getNamespace(): string {
-    return 'user';
-  }
-  
-  public getPriority(): number {
-    return 100; 
-  }
-  
-  public getVariables(context: any): Record<string, any> {
-    // Extract user data from context
-    const user = context.user || {};
-    
-    return {
-      id: user.id || '',
-      name: user.name || '',
-      email: user.email || '',
-      // Additional user properties
-    };
-  }
-}
-```
-
-### Registering Data Providers
-
-Data providers must be registered with the template system:
+Templates can include conditional logic:
 
 ```typescript
-const providerIntent = new Intent('template:provider:register', {
-  provider: new UserDataProvider()
-});
-
-await mcp.executeIntent(providerIntent);
-```
-
-## Plugin Integration
-
-### Example: Alfafrens Plugin Integration
-
-The Alfafrens plugin demonstrates a complete integration with the template system:
-
-1. **TemplateIntegration Class**: Manages template and provider registration
-2. **MessageDataProvider**: Provides message-specific variables
-3. **BotDataProvider**: Provides bot-specific variables
-4. **ResponseFormatter**: Formats responses for better readability
-5. **ALFAFRENS_TEMPLATES**: Default templates for various response types
-
-Integration can be initialized during plugin startup:
-
-```typescript
-// In plugin's initialize method
-this.templateIntegration = new TemplateIntegration({
-  mcp: this.mcp,
-  logger: this.logger,
-  botConfig: this.config
-});
-
-await this.templateIntegration.initialize();
+const conditionalTemplate = `
+{{#if user.isAdmin}}
+  Welcome, Admin! You have {{admin.pendingTasks}} tasks.
+{{else}}
+  Welcome, {{user.name}}!
+{{/if}}
+`;
 ```
 
 ### Response Formatting
 
-The Alfafrens plugin includes a `ResponseFormatter` that improves readability:
+The framework includes a `ResponseFormatter` that improves readability:
 
 - Removes artificial signatures
 - Breaks long paragraphs into smaller ones
@@ -175,14 +95,6 @@ The template system includes several built-in variable namespaces:
 | `{{message.username}}` | Username of sender |
 | `{{message.time}}` | Formatted message time |
 | `{{message.date}}` | Formatted message date |
-
-### Bot Variables
-
-| Variable | Description |
-|----------|-------------|
-| `{{bot.name}}` | Bot name |
-| `{{bot.username}}` | Bot username |
-| `{{bot.personality}}` | Bot personality trait |
 
 ### System Variables
 
@@ -209,4 +121,4 @@ This organization allows for efficient template selection based on the specific 
 2. Organize templates by category and usage for easy selection
 3. Use priorities to ensure the most appropriate template is selected
 4. Create custom data providers for plugin-specific variables
-5. Format responses for readability before applying templates 
+5. Format responses for readability before applying templates

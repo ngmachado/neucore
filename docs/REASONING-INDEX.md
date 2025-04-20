@@ -1,6 +1,6 @@
-# NeuroCore Reasoning System Documentation
+# neucore Reasoning System Documentation
 
-Welcome to the NeuroCore Reasoning System documentation. This directory contains comprehensive documentation for understanding, using, and extending the reasoning capabilities of NeuroCore.
+Welcome to the neucore Reasoning System documentation. This directory contains comprehensive documentation for understanding, using, and extending the reasoning capabilities of neucore.
 
 ## Documentation Index
 
@@ -16,14 +16,15 @@ Welcome to the NeuroCore Reasoning System documentation. This directory contains
 
 ## Reasoning Methods Overview
 
-NeuroCore supports (or plans to support) the following reasoning methods:
+neucore supports (or plans to support) the following reasoning methods:
 
 | Method | Status | Description | Documentation |
 |--------|--------|-------------|---------------|
 | Chain of Thought | Implemented | Step-by-step reasoning with explicit intermediate steps | [README.md](./README.md#chain-of-thought-reasoner) |
 | Tree of Thought | Planned | Explores multiple reasoning paths in a tree structure | [README-future-methods.md](./README-future-methods.md#tree-of-thought-tot) |
 | ReAct | Planned | Reasoning and Acting in alternating sequence | [README-future-methods.md](./README-future-methods.md#react-reasoning--acting) |
-| Socratic | Planned | Query-based reasoning through questions | [README-future-methods.md](./README-future-methods.md#socratic-method) |
+| Socratic | Implemented | Query-based reasoning through questions | [README.md](./README.md#socratic-reasoner) |
+| Dialogic | Implemented | Reasoning through constructive dialog between proposer and critic | [README.md](./README.md#dialogic-reasoner) |
 | First Principles | Planned | Breaking down problems to fundamental elements | [README-future-methods.md](./README-future-methods.md#first-principles-reasoning) |
 | Reflexion | Planned | Self-critical reasoning with reflection | [README-future-methods.md](./README-future-methods.md#reflexion) |
 
@@ -32,6 +33,7 @@ NeuroCore supports (or plans to support) the following reasoning methods:
 To use the reasoning system in your application:
 
 ```typescript
+// Example with Chain of Thought
 import { ChainOfThoughtReasoner } from 'neurocore/src/core/reasoning/chainOfThoughtReasoner';
 import { ReasoningMethod } from 'neurocore/src/core/reasoning/types';
 import { IModelProvider } from 'neurocore/src/core/providers/modelProvider';
@@ -51,13 +53,39 @@ const result = await reasoner.reason("How can I solve this problem?");
 console.log(result.conclusion);
 ```
 
+```typescript
+// Example with Socratic Reasoning
+import { SocraticReasoner } from 'neurocore/src/core/reasoning/socraticReasoner';
+import { ReasoningMethod } from 'neurocore/src/core/reasoning/types';
+import { IModelProvider } from 'neurocore/src/core/providers/modelProvider';
+
+// Initialize a model provider
+const modelProvider: IModelProvider = /* your model provider */;
+
+// Create a Socratic reasoner
+const socraticReasoner = new SocraticReasoner(modelProvider, {
+    method: ReasoningMethod.SOCRATIC,
+    methodOptions: {
+        maxQuestions: 5,
+        includeSynthesis: true
+    }
+});
+
+// Perform Socratic reasoning
+const result = await socraticReasoner.reason("What are the ethical implications of AI?");
+
+// Use the result
+console.log("Conclusion:", result.conclusion);
+console.log("Confidence:", result.confidence);
+```
+
 ## Implementing a New Reasoner
 
 If you want to implement a new reasoning method, see the [Implementation Guide](./IMPLEMENTATION-GUIDE.md) for detailed instructions.
 
 ## Integration with Other Systems
 
-The reasoning system integrates with other NeuroCore components:
+The reasoning system integrates with other neucore components:
 
 - **Goal Management** - For goal-oriented reasoning
 - **Memory System** - For accessing and updating memory during reasoning
@@ -91,3 +119,5 @@ ConcreteReasoners (implementations)
 ```
 
 Each reasoner uses a model provider to generate text and implements a specific reasoning methodology. 
+
+> **Navigation**: [Back to README](../README.md) | [Reasoning Documentation](REASONING.md) 

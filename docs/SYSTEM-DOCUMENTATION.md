@@ -1,15 +1,15 @@
-# NeuroCore Framework Documentation
+# neucore Framework Documentation
 
-NeuroCore is a modern AI framework for building context-aware AI applications. This document provides an overview of all major subsystems and how they interact to create sophisticated AI experiences.
+neucore is a modern AI framework for building context-aware AI applications. This document provides an overview of all major subsystems and how they interact to create sophisticated AI experiences.
 
 > **Navigation**: [Back to README](../README.md) | [Component Status](COMPONENT-STATUS.md) | [Reasoning Documentation](REASONING.md)
 
 ## System Architecture
 
-NeuroCore is organized into several key subsystems:
+neucore is organized into several key subsystems:
 
 ```
-neurocore/
+neucore/
 ├── src/
 │   ├── core/                  # Core framework functionality
 │   │   ├── memory/            # Memory management
@@ -46,7 +46,7 @@ The Memory System provides long-term storage and retrieval of information with s
 
 #### Example Usage:
 ```typescript
-import { MemoryManager } from 'neurocore';
+import { MemoryManager } from 'neucore';
 
 const memoryManager = new MemoryManager(database, embeddingProvider);
 
@@ -76,7 +76,7 @@ The Context Building System intelligently selects relevant information to includ
 
 #### Example Usage:
 ```typescript
-import { createContextBuilder } from 'neurocore';
+import { createContextBuilder } from 'neucore';
 
 const contextBuilder = createContextBuilder({
   memoryManager,
@@ -103,7 +103,7 @@ The Reasoning System provides structured approaches to complex reasoning and pro
 
 #### Example Usage:
 ```typescript
-import { ChainOfThoughtReasoner, ReasoningMethod } from 'neurocore';
+import { ChainOfThoughtReasoner, ReasoningMethod } from 'neucore';
 
 const reasoner = new ChainOfThoughtReasoner(modelProvider, {
   method: ReasoningMethod.CHAIN_OF_THOUGHT
@@ -129,7 +129,7 @@ The Action System defines and executes concrete operations for the AI to perform
 
 #### Example Usage:
 ```typescript
-import { ActionManager } from 'neurocore';
+import { ActionManager } from 'neucore';
 
 const actionManager = new ActionManager(permissionManager);
 
@@ -174,7 +174,7 @@ The RAG System enhances AI responses with knowledge retrieval and processing.
 
 #### Example Usage:
 ```typescript
-import { createRAGKnowledgeManager } from 'neurocore';
+import { createRAGKnowledgeManager } from 'neucore';
 
 const ragManager = createRAGKnowledgeManager({
   database,
@@ -208,7 +208,7 @@ The Goal Management System tracks and manages objectives for agents and users.
 
 #### Example Usage:
 ```typescript
-import { GoalManager, GoalStatus } from 'neurocore';
+import { GoalManager, GoalStatus } from 'neucore';
 
 const goalManager = new GoalManager(database);
 
@@ -238,7 +238,7 @@ The Model Provider System provides a unified interface to different LLM provider
 
 #### Example Usage:
 ```typescript
-import { createProviderFactory } from 'neurocore';
+import { createProviderFactory } from 'neucore';
 
 const providerFactory = createProviderFactory({
   anthropic: {
@@ -273,7 +273,7 @@ The Model Context Protocol provides a standardized system for managing context b
 
 ### Example Usage:
 ```typescript
-import { createIntentRouter, BaseIntentHandler } from 'neurocore';
+import { createIntentRouter, BaseIntentHandler } from 'neucore';
 
 const router = createIntentRouter();
 
@@ -387,4 +387,4 @@ Automatic summarization and organization of memories over time for improved effi
 
 ## Conclusion
 
-NeuroCore provides a comprehensive framework for building sophisticated AI applications with context awareness, reasoning capabilities, and task-oriented behaviors. By leveraging these interconnected systems, developers can create AI solutions that are more capable, contextually relevant, and effective at solving complex problems. 
+neucore provides a comprehensive framework for building sophisticated AI applications with context awareness, reasoning capabilities, and task-oriented behaviors. By leveraging these interconnected systems, developers can create AI solutions that are more capable, contextually relevant, and effective at solving complex problems. 

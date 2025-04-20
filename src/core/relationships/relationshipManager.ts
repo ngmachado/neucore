@@ -4,7 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from '../database';
-import { RelationshipEntity } from '../database/interfaces';
+import { Relationship as RelationshipEntity } from '../database/interfaces';
 import { Relationship } from '../../types/framework';
 import { UUID } from '../../types';
 import { getLogger } from '../logging';
@@ -55,8 +55,8 @@ export class RelationshipManager {
             return existing;
         }
 
-        const now = new Date();
-        const relationship: RelationshipEntity = {
+        // Create relationship object in the format expected by the database service
+        const relationship: Relationship = {
             id: uuidv4() as UUID,
             entityA,
             entityB,
@@ -64,9 +64,9 @@ export class RelationshipManager {
             status,
             primaryId,
             contextId,
-            metadata,
-            createdAt: now,
-            updatedAt: now
+            metadata: metadata || {},
+            createdAt: new Date(),
+            updatedAt: new Date()
         };
 
         return this.database.createRelationship(relationship);

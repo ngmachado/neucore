@@ -1,6 +1,8 @@
-# Character Traits System
+# neucore Character Traits System
 
-> **Navigation**: [Back to Main README](../README.md)
+The Character Traits System provides a framework for defining and managing AI personality and traits.
+
+> **Navigation**: [Back to README](../README.md) | [System Documentation](SYSTEM-DOCUMENTATION.md)
 
 The Character Traits System allows AI applications to maintain consistent character personalities, styles, and behaviors across interactions. This system enables plugins to leverage shared character definitions while implementing specific behavior.
 

@@ -1,5 +1,72 @@
 {
-    "name": "AlfafrensBot",
+    "name": "Alfafrens Bot",
+    "version": "1.0.0",
+    "description": "A plugin for interacting with the Alfafrens API",
+    "exposedIntents": [
+        {
+            "action": "alfafrens:getMessages",
+            "description": "Get messages from Alfafrens API",
+            "parameters": {},
+            "returns": {}
+        },
+        {
+            "action": "alfafrens:sendMessage",
+            "description": "Send a message via Alfafrens API",
+            "parameters": {},
+            "returns": {}
+        },
+        {
+            "action": "alfafrens:replyMessage",
+            "description": "Reply to a message via Alfafrens API",
+            "parameters": {},
+            "returns": {}
+        },
+        {
+            "action": "alfafrens:createPost",
+            "description": "Create a post via Alfafrens API",
+            "parameters": {},
+            "returns": {}
+        },
+        {
+            "action": "alfafrens:startPolling",
+            "description": "Start polling for messages",
+            "parameters": {},
+            "returns": {}
+        },
+        {
+            "action": "alfafrens:stopPolling",
+            "description": "Stop polling for messages",
+            "parameters": {},
+            "returns": {}
+        }
+    ],
+    "requiredIntents": [],
+    "config": {
+        "required": [
+            "apiKey",
+            "channelId"
+        ],
+        "optional": [
+            "userId",
+            "username",
+            "pollInterval",
+            "enablePost",
+            "postIntervalMin",
+            "postIntervalMax"
+        ],
+        "defaults": {
+            "pollInterval": 30,
+            "enablePost": false,
+            "postIntervalMin": 3600,
+            "postIntervalMax": 7200
+        },
+        "environment": {
+            "apiKey": "ALFAFRENS_API_KEY",
+            "userId": "ALFAFRENS_USER_ID",
+            "channelId": "ALFAFRENS_CHANNEL_ID",
+            "username": "ALFAFRENS_USERNAME"
+        }
+    },
     "bio": [
         "Helpful AI assistant for the Alfafrens community",
         "Knowledgeable about blockchain and finance topics",

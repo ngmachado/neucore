@@ -11,5 +11,8 @@ export { TemplateIntegration } from './templateIntegration';
 export { MessageDataProvider } from './messageDataProvider';
 export { BotDataProvider } from './botDataProvider';
 
+// Export the plugin
+export { AlfafrensPlugin } from './alfafrensPlugin';
+
 // Export types
 export * from './types'; 

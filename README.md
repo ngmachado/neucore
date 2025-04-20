@@ -1,12 +1,12 @@
-# NeuroCore
+# neucore
 
 Modern AI framework for building context-aware AI applications.
 
-> **Early Development Notice**: NeuroCore is currently in early development (v0.0.1). APIs may change significantly between versions. See [Component Status](COMPONENT-STATUS.md) for implementation details.
+> **Early Development Notice**: neucore is currently in early development (v0.0.1). APIs may change significantly between versions. See [Component Status](docs/COMPONENT-STATUS.md) for implementation details.
 
 ## Overview
 
-NeuroCore provides the essential building blocks for creating sophisticated AI applications with memory, context management, reasoning capabilities, and plugin-based extensibility. It's designed to be modular, flexible, and performant.
+neucore provides the essential building blocks for creating sophisticated AI applications with memory, context management, reasoning capabilities, and plugin-based extensibility. It's designed to be modular, flexible, and performant.
 
 ## Key Features
 
@@ -24,7 +24,7 @@ NeuroCore provides the essential building blocks for creating sophisticated AI a
 ## Installation
 
 ```bash
-npm install neurocore
+npm install neucore
 ```
 
 ## Quick Start
@@ -35,7 +35,7 @@ import {
   createContextBuilder,
   ChainOfThoughtReasoner,
   ReasoningMethod
-} from 'neurocore';
+} from 'neucore';
 
 // Initialize provider
 const providerFactory = createProviderFactory({
@@ -111,7 +111,7 @@ const results = await router.sendIntent(intent, {
 ## Directory Structure
 
 ```
-neurcore/
+neucore/
 ├── docs/                     # Documentation files
 │   ├── SYSTEM-DOCUMENTATION.md # System overview
 │   ├── COMPONENT-STATUS.md   # Implementation status

@@ -8,32 +8,14 @@ import { Intent } from '../intent';
 import { IntentHandler, IntentResult } from '../intentHandler';
 import { RequestContext } from '../interfaces/plugin';
 import { IntentFilter } from '../intentFilter';
-
-// Mock reasoner components since the module is missing
-interface ReasoningOptions {
-    maxDepth?: number;
-    methodOptions?: any;
-}
-
-enum ReasoningMethod {
-    CHAIN_OF_THOUGHT = 'chain_of_thought',
-    TREE_OF_THOUGHT = 'tree_of_thought',
-    STEP_BACK = 'step_back'
-}
-
-class ChainOfThoughtReasoner {
-    constructor(private modelProvider: any, private options: any = {}) { }
-
-    async reason(query: string, options?: ReasoningOptions): Promise<any> {
-        // Mock implementation
-        return {
-            conclusion: "This is a mock reasoning conclusion",
-            confidence: 0.8,
-            steps: [],
-            timeTaken: 100
-        };
-    }
-}
+import {
+    ReasoningMethod,
+    ReasoningOptions
+} from '../../core/reasoning/types';
+import {
+    ChainOfThoughtReasoner
+} from '../../core/reasoning/chainOfThoughtReasoner';
+import { IModelProvider } from '../../core/providers/modelProvider';
 
 /**
  * Handler for reasoning-related intents
@@ -41,8 +23,9 @@ class ChainOfThoughtReasoner {
 export class ReasoningHandler implements IntentHandler {
     private reasoner: ChainOfThoughtReasoner;
 
-    constructor(private modelProvider: any) {
-        this.reasoner = new ChainOfThoughtReasoner(modelProvider);
+    constructor(private modelProvider: IModelProvider) {
+        // Initialize with default options
+        this.reasoner = new ChainOfThoughtReasoner(modelProvider, {});
     }
 
     /**
@@ -102,19 +85,26 @@ export class ReasoningHandler implements IntentHandler {
 
         const options = intent.data.options || {};
 
-        const result = await this.reasoner.reason(`Analyze the following content: ${content}`, {
-            maxDepth: options.maxDepth || 3,
-            methodOptions: options.methodOptions || {}
-        });
+        try {
+            const result = await this.reasoner.reason(`Analyze the following content: ${content}`, {
+                maxDepth: options.maxDepth || 3,
+                methodOptions: options.methodOptions || {}
+            });
 
-        return {
-            success: true,
-            data: {
-                conclusion: result.conclusion,
-                confidence: result.confidence,
-                analysis: result.steps
-            }
-        };
+            return {
+                success: true,
+                data: {
+                    conclusion: result.conclusion,
+                    confidence: result.confidence,
+                    analysis: result.graph.nodes.map(node => node.content)
+                }
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : String(error)
+            };
+        }
     }
 
     /**
@@ -131,18 +121,25 @@ export class ReasoningHandler implements IntentHandler {
 
         const options = intent.data.options || {};
 
-        const result = await this.reasoner.reason(problem, {
-            maxDepth: options.maxDepth || 5,
-            methodOptions: options.methodOptions || {}
-        });
+        try {
+            const result = await this.reasoner.reason(problem, {
+                maxDepth: options.maxDepth || 5,
+                methodOptions: options.methodOptions || {}
+            });
 
-        return {
-            success: true,
-            data: {
-                solution: result.conclusion,
-                confidence: result.confidence,
-                reasoning: result.steps
-            }
-        };
+            return {
+                success: true,
+                data: {
+                    solution: result.conclusion,
+                    confidence: result.confidence,
+                    reasoning: result.graph.nodes.map(node => node.content)
+                }
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : String(error)
+            };
+        }
     }
 } 

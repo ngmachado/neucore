@@ -3,6 +3,15 @@ import { Intent } from '../mcp/intent';
 import { UUID } from '../types';
 import { ProviderFactory } from '../core/providers';
 import { IModelProvider, CompletionParams } from '../core/providers/modelProvider';
+import {
+    IReasoner,
+    ReasoningResult,
+    ReasoningProgress
+} from '../core/reasoning/reasoner';
+import { ChainOfThoughtReasoner } from '../core/reasoning/chainOfThoughtReasoner';
+import { SocraticReasoner } from '../core/reasoning/socraticReasoner';
+import { DialogicReasoner } from '../core/reasoning/dialogicReasoner';
+import { ReasoningMethod, ReasoningOptions as CoreReasoningOptions } from '../core/reasoning/types';
 
 /**
  * Options for solving reasoning problems
@@ -15,6 +24,88 @@ interface ReasoningOptions {
     systemContext?: string;
     maxDepth?: number;
     maxIterations?: number;
+    method?: ReasoningMethod | string;
+    methodOptions?: Record<string, any>;
+}
+
+/**
+ * Convert plugin reasoning options to core reasoning options
+ * 
+ * This function handles type compatibility between the plugin-specific ReasoningOptions
+ * and the core CoreReasoningOptions used by the reasoners. Plugin-specific properties
+ * that don't exist in the core options are moved to methodOptions to preserve them.
+ * 
+ * @param options Plugin options
+ * @param defaultModel Default model to use if not specified in options
+ * @returns Core reasoning options
+ */
+function convertToCoreOptions(options?: ReasoningOptions, defaultModel?: string): Partial<CoreReasoningOptions> {
+    if (!options) return {};
+
+    console.log(`[CONVERT] Input method type: ${typeof options.method}`);
+    console.log(`[CONVERT] Input method value: ${options.method}`);
+
+    // Handle method mapping - convert string to enum if needed
+    let method: ReasoningMethod | undefined;
+
+    // If it's a string, map it to the appropriate enum value
+    if (typeof options.method === 'string') {
+        switch (options.method.toLowerCase()) {
+            case 'socratic':
+                method = ReasoningMethod.SOCRATIC;
+                break;
+            case 'dialogic':
+                method = ReasoningMethod.DIALOGIC;
+                break;
+            case 'chain_of_thought':
+            case 'chainofthought':
+                method = ReasoningMethod.CHAIN_OF_THOUGHT;
+                break;
+            case 'tree_of_thought':
+            case 'treeofthought':
+                method = ReasoningMethod.TREE_OF_THOUGHT;
+                break;
+            case 'react':
+                method = ReasoningMethod.REACT;
+                break;
+            case 'first_principles':
+            case 'firstprinciples':
+                method = ReasoningMethod.FIRST_PRINCIPLES;
+                break;
+            case 'reflexion':
+                method = ReasoningMethod.REFLEXION;
+                break;
+            default:
+                // Default to chain of thought if string doesn't match
+                console.log(`[CONVERT] Method string "${options.method}" not recognized, defaulting to CHAIN_OF_THOUGHT`);
+                method = ReasoningMethod.CHAIN_OF_THOUGHT;
+                break;
+        }
+    } else if (options.method !== undefined) {
+        // If it's not a string but is defined, use it directly
+        method = options.method;
+    } else {
+        // Default if undefined
+        method = ReasoningMethod.CHAIN_OF_THOUGHT;
+    }
+
+    console.log(`[CONVERT] Final method: ${method}`);
+
+    // Only include properties that exist in CoreReasoningOptions
+    return {
+        method,
+        temperature: options.temperature,
+        maxDepth: options.maxDepth,
+        maxIterations: options.maxIterations,
+        methodOptions: {
+            ...options.methodOptions,
+            // Move plugin-specific options to methodOptions
+            model: options.model || defaultModel,
+            maxTokens: options.maxTokens,
+            systemContext: options.systemContext,
+            useChainedReasoning: options.useChainedReasoning
+        }
+    };
 }
 
 /**
@@ -424,12 +515,157 @@ export class ReasoningPlugin implements IPlugin {
             };
         }
 
-        // Check if chain reasoning is enabled
+        // Log full options received
+        console.log(`[REASONING] Full options received: ${JSON.stringify(options)}`);
+
+        // Determine which reasoning method to use
+        const methodInput = options?.method || ReasoningMethod.CHAIN_OF_THOUGHT;
+        console.log(`[REASONING] Input reasoning method: ${methodInput}`);
+        console.log(`[REASONING] Method type: ${typeof methodInput}`);
+        console.log(`[REASONING] Raw method value: ${JSON.stringify(methodInput)}`);
+
+        // Convert string method to enum if needed
+        let method: ReasoningMethod;
+
+        if (typeof methodInput === 'string') {
+            // Enhanced string matching with better logging
+            console.log(`[REASONING] Processing string method: "${methodInput}"`);
+
+            // Normalize the string input by removing underscores and converting to lowercase
+            const normalizedMethod = methodInput.toLowerCase().replace(/_/g, '').trim();
+
+            // Log the normalized method string
+            console.log(`[REASONING] Normalized method string: "${normalizedMethod}"`);
+
+            switch (normalizedMethod) {
+                case 'socratic':
+                    console.log(`[REASONING] Matched 'socratic' string, using Socratic reasoning`);
+                    method = ReasoningMethod.SOCRATIC;
+                    break;
+                case 'dialogic':
+                    console.log(`[REASONING] Matched 'dialogic' string, using Dialogic reasoning`);
+                    method = ReasoningMethod.DIALOGIC;
+                    break;
+                case 'chainofthought':
+                    console.log(`[REASONING] Matched 'chain_of_thought' string, using Chain of Thought reasoning`);
+                    method = ReasoningMethod.CHAIN_OF_THOUGHT;
+                    break;
+                default:
+                    console.log(`[REASONING] No string match for "${methodInput}", defaulting to chain_of_thought`);
+                    method = ReasoningMethod.CHAIN_OF_THOUGHT;
+            }
+        } else {
+            // It's already an enum value
+            console.log(`[REASONING] Using enum value directly: ${methodInput}`);
+            method = methodInput;
+        }
+
+        console.log(`[REASONING] Using reasoning method: ${method}`);
+        console.log(`[REASONING] Final method type: ${typeof method}`);
+        console.log(`[REASONING] Is equal to SOCRATIC enum: ${method === ReasoningMethod.SOCRATIC}`);
+        console.log(`[REASONING] Is equal to 'socratic' string: ${method === 'socratic'}`);
+        console.log(`[REASONING] ReasoningMethod.SOCRATIC value: ${ReasoningMethod.SOCRATIC}`);
+
+        // Create the appropriate reasoner based on the method
+        let reasoner: IReasoner | null = null;
+
+        try {
+            switch (method) {
+                case ReasoningMethod.SOCRATIC:
+                    console.log(`[REASONING] Creating Socratic reasoner`);
+                    // @ts-ignore - Known type mismatch between plugin and core options
+                    reasoner = new SocraticReasoner(this.modelProvider, {});
+                    break;
+
+                case ReasoningMethod.DIALOGIC:
+                    console.log(`[REASONING] Creating Dialogic reasoner`);
+                    // @ts-ignore - Known type mismatch between plugin and core options
+                    reasoner = new DialogicReasoner(this.modelProvider, {});
+                    break;
+
+                case ReasoningMethod.CHAIN_OF_THOUGHT:
+                default:
+                    console.log(`[REASONING] Creating Chain of Thought reasoner`);
+                    // @ts-ignore - Known type mismatch between plugin and core options
+                    reasoner = new ChainOfThoughtReasoner(this.modelProvider, {});
+                    break;
+            }
+
+            // If we successfully created a reasoner, use it
+            if (reasoner) {
+                const startTime = Date.now();
+
+                // Set up problem with context if available
+                const fullProblem = context ? `${problem}\n\n${context}` : problem;
+
+                // Convert plugin options to core options
+                const coreOptions = convertToCoreOptions(options, this.defaultModel);
+
+                // Perform reasoning
+                const reasoningResult = await reasoner.reason(fullProblem, coreOptions);
+
+                const processingTime = Date.now() - startTime;
+                console.log(`[REASONING] Completed ${method} reasoning in ${processingTime}ms`);
+
+                // Extract the solution and return it
+                return {
+                    success: true,
+                    data: {
+                        solution: reasoningResult.conclusion,
+                        graph: reasoningResult.graph,
+                        metadata: {
+                            model: options?.model || this.defaultModel,
+                            approach: method,
+                            confidence: reasoningResult.confidence,
+                            steps: reasoningResult.stepCount,
+                            timeTaken: reasoningResult.timeTaken,
+                            timestamp: new Date().toISOString()
+                        }
+                    }
+                };
+            } else {
+                // If we couldn't create a reasoner, fall back to the old implementation
+                console.log(`[REASONING] Using direct (non-chain) reasoning method`);
+
+                // Use the existing method for backward compatibility
+                return this.legacyGenerateProblemSolution(problem, context, options);
+            }
+        } catch (error) {
+            console.error(`[REASONING] Error using ${method} reasoner:`, error);
+            this.logger.error(`Error using ${method} reasoner: ${error}`);
+
+            // Fall back to the legacy implementation
+            console.log(`[REASONING] Falling back to legacy implementation`);
+            return this.legacyGenerateProblemSolution(problem, context, options);
+        }
+    }
+
+    // Rename the existing implementation to legacyGenerateProblemSolution
+    private async legacyGenerateProblemSolution(
+        problem: string,
+        context: string,
+        options?: ReasoningOptions
+    ): Promise<PluginResult> {
+        // Copy the original implementation here
+        // This is the existing chain of thought implementation
+
+        if (!this.modelProvider) {
+            return {
+                success: false,
+                error: 'No AI provider available'
+            };
+        }
+
+        // Extract options from the ReasoningOptions object
         const useChainedReasoning = options?.useChainedReasoning !== false;
+        const systemContext = options?.systemContext;
+        const model = options?.model || this.defaultModel;
+        const maxTokens = options?.maxTokens || 1000;
+
         console.log(`[REASONING-CHAIN] Chain reasoning enabled: ${useChainedReasoning}`);
 
         // Use a more structured, analytical system prompt for problem-solving
-        const systemPrompt = options?.systemContext ||
+        const systemPrompt = systemContext ||
             `You are an expert problem-solver with deep analytical abilities. Your task is to solve the given problem thoroughly and accurately.
             
             Approach:
@@ -446,9 +682,6 @@ export class ReasoningPlugin implements IPlugin {
             
             Below is context that may be relevant to solving this problem.`;
 
-        // Use a more powerful model for complex problem-solving
-        const model = options?.model || this.defaultModel;
-
         if (useChainedReasoning) {
             console.log(`[REASONING-CHAIN] Starting chain-of-thought reasoning process`);
 
@@ -459,7 +692,7 @@ export class ReasoningPlugin implements IPlugin {
 
             // Initialize chain with first step
             const steps = [];
-            let currentStep = `I need to solve this problem: "${problem}"\n\nI'll break this down into steps:`;
+            let currentStep = `Starting to analyze: Breaking down the problem into steps`;
             steps.push(currentStep);
             console.log(`[REASONING-CHAIN] Step 0 (Problem): ${currentStep.substring(0, 100)}...`);
 
@@ -473,6 +706,7 @@ export class ReasoningPlugin implements IPlugin {
                 // Build the completion request for this step
                 const stepPrompt = `
 You are working through a reasoning problem step by step.
+Problem to solve: "${problem}"
 Previous reasoning steps:
 ${steps.join('\n\n')}
 
@@ -508,7 +742,7 @@ ${i === maxSteps - 1 ? 'This should be the final step where you state your concl
                             }
                         ],
                         temperature: temperature,
-                        maxTokens: options?.maxTokens || 800
+                        maxTokens: maxTokens
                     });
 
                     // Extract step content
@@ -571,7 +805,7 @@ ${i === maxSteps - 1 ? 'This should be the final step where you state your concl
             console.log(`[REASONING-CHAIN] Generating final solution from ${steps.length} steps`);
             const solutionStartTime = Date.now();
 
-            // Build prompt for final solution
+            // Improved instruction prompt for final solution to avoid leakage
             const solutionPrompt = `
 You've completed a multi-step reasoning process to solve this problem:
 "${problem}"
@@ -579,9 +813,18 @@ You've completed a multi-step reasoning process to solve this problem:
 Your reasoning steps were:
 ${steps.map((step, index) => `Step ${index}: ${step}`).join('\n\n')}
 
-Based on this reasoning, provide your final solution to the original problem. 
-Be concise but complete. Don't say "based on my reasoning" or repeat the steps.
-Just provide the solution directly.
+Based on this reasoning, provide your final solution.
+
+IMPORTANT GUIDELINES:
+1. Do NOT repeat the original problem statement or query in your response
+2. Do NOT say phrases like "based on my reasoning" or "after analyzing the steps"
+3. Do NOT include any of your reasoning steps in the response
+4. Do NOT start with "I'll break this down" or meta-commentary
+5. Provide ONLY the direct answer/solution in a natural, conversational style
+6. For message responses, write as if you're speaking directly to the person
+7. Assume the person already knows what they asked - no need to remind them
+
+If responding to a question, start with the answer directly. 
 `;
 
             try {
@@ -591,7 +834,7 @@ Just provide the solution directly.
                     messages: [
                         {
                             role: 'system',
-                            content: 'You are providing the final solution to a problem after careful reasoning.'
+                            content: 'You are providing the final solution to a problem after careful reasoning. Your task is to give ONLY the solution, not to explain your reasoning process or repeat the question.'
                         },
                         {
                             role: 'user',
@@ -599,7 +842,7 @@ Just provide the solution directly.
                         }
                     ],
                     temperature: 0.3, // Lower temperature for final solution
-                    maxTokens: options?.maxTokens || 1000
+                    maxTokens: maxTokens
                 });
 
                 // Extract solution content
@@ -620,6 +863,9 @@ Just provide the solution directly.
                 else if (solutionResponse.choices && solutionResponse.choices[0]?.message?.content) {
                     solution = solutionResponse.choices[0].message.content;
                 }
+
+                // Post-process solution to clean up any remaining leaks
+                solution = this.cleanupFinalSolution(solution, problem);
 
                 const solutionTime = Date.now() - solutionStartTime;
                 console.log(`[REASONING-CHAIN] Final solution generated in ${solutionTime}ms`);
@@ -653,13 +899,14 @@ Just provide the solution directly.
 
                 // Fall back to using the last step as the solution
                 if (steps.length > 0) {
-                    const fallbackSolution = steps[steps.length - 1];
+                    // Clean up the fallback solution as well
+                    const fallbackSolution = this.cleanupFinalSolution(steps[steps.length - 1], problem);
 
                     return {
                         success: true,
                         data: {
                             solution: fallbackSolution,
-                            steps,
+                            confidence: 0.6,  // Lower confidence for fallback
                             metadata: {
                                 model,
                                 approach: 'chain-of-thought-fallback',
@@ -693,7 +940,7 @@ Just provide the solution directly.
                 }
             ],
             temperature: options?.temperature || 0.3, // Lower temperature for more focused responses
-            maxTokens: options?.maxTokens || 1000
+            maxTokens: maxTokens
         };
 
         try {
@@ -819,5 +1066,132 @@ Just provide the solution directly.
                 }
             }
         };
+    }
+
+    /**
+     * Post-process the final solution to clean up any remaining leaks
+     * @param solution The raw solution string
+     * @param problem The original problem statement
+     * @returns Cleaned up solution
+     */
+    private cleanupFinalSolution(solution: string, problem: string): string {
+        if (!solution) return solution;
+
+        // Extract the original message to match against (for message responses)
+        let originalMessage = '';
+        if (problem.toLowerCase().includes('generate a response to:')) {
+            const messageMatch = problem.match(/generate a response to:?\s*["'](.+?)["']/i);
+            if (messageMatch && messageMatch[1]) {
+                originalMessage = messageMatch[1];
+            }
+        } else if (problem.toLowerCase().includes('respond to:')) {
+            const messageMatch = problem.match(/respond to:?\s*["'](.+?)["']/i);
+            if (messageMatch && messageMatch[1]) {
+                originalMessage = messageMatch[1];
+            }
+        }
+
+        let cleanedSolution = solution;
+
+        // Remove common reasoning leaks
+        const leakPatterns = [
+            // Pattern: I need to solve this problem: "X"
+            /I need to solve (?:this|the) problem:?\s*["'].*?["']/i,
+            // Pattern: I'll break this down into steps
+            /I['']ll break this down into steps:?/i,
+            // Pattern: Let me think through this
+            /Let me think through this:?/i,
+            // Pattern: Step X: 
+            /^Step \d+:?\s+/im,
+            // Pattern: First, I'll analyze...
+            /^First,? I['']ll analyze/im,
+            // Pattern: To solve this problem...
+            /^To solve this problem/im,
+            // Pattern: I'll start by...
+            /^I['']ll start by/im,
+            // Pattern: Based on my reasoning...
+            /(?:based|building) on (?:my|the) (?:reasoning|analysis)/i,
+            // Pattern: According to my analysis...
+            /according to (?:my|the) (?:reasoning|analysis)/i,
+            // Pattern: From the reasoning steps...
+            /from the (?:reasoning|analysis) steps/i,
+            // Pattern: After analyzing the problem...
+            /after analyzing the problem/i,
+            // Pattern: Based on the steps above...
+            /based on the steps above/i,
+            // Pattern: Looking at all the steps...
+            /looking at all the steps/i,
+            // Pattern: Having considered all aspects...
+            /having considered all aspects/i,
+        ];
+
+        // Apply all the patterns
+        for (const pattern of leakPatterns) {
+            cleanedSolution = cleanedSolution.replace(pattern, '');
+        }
+
+        // If we have an original message (from a response-type query), check for repetition
+        if (originalMessage && originalMessage.length > 5) {
+            // Create a regex pattern to match the beginning 5+ words of the original message
+            // This handles cases where the bot repeats the user's question back
+            const firstFewWords = originalMessage.split(/\s+/).slice(0, 5).join('\\s+');
+            if (firstFewWords.length > 10) {
+                const repetitionPattern = new RegExp(`${firstFewWords}`, 'i');
+                cleanedSolution = cleanedSolution.replace(repetitionPattern, '');
+            }
+
+            // Remove direct quotations of the original message
+            cleanedSolution = cleanedSolution.replace(new RegExp(`["']${this.escapeRegExp(originalMessage)}["']`, 'i'), '');
+        }
+
+        // Remove reasoning meta-commentary
+        const metaCommentaryPatterns = [
+            /let(?:'s| us) analyze this step by step/i,
+            /I(?:'ll| will) approach this methodically/i,
+            /This requires a step-by-step approach/i,
+            /To answer this question/i,
+            /To address this/i,
+            /My response to this query is/i,
+            /My answer to this question is/i,
+            /In response to your question/i,
+            /The solution to this problem is/i,
+            /My solution is/i,
+            /Here's my solution/i,
+            /Here's my response/i,
+            /here's the answer/i,
+            /The answer is as follows/i,
+        ];
+
+        for (const pattern of metaCommentaryPatterns) {
+            cleanedSolution = cleanedSolution.replace(pattern, '');
+        }
+
+        // Clean up any double whitespace or leading/trailing whitespace
+        cleanedSolution = cleanedSolution.replace(/\s{2,}/g, ' ').trim();
+
+        // If the solution now starts with common transitional phrases, remove them
+        const transitionalPhrases = [
+            /^Therefore,?\s+/i,
+            /^Thus,?\s+/i,
+            /^In conclusion,?\s+/i,
+            /^So,?\s+/i,
+            /^Overall,?\s+/i,
+            /^Finally,?\s+/i,
+            /^In summary,?\s+/i,
+            /^To summarize,?\s+/i,
+        ];
+
+        for (const pattern of transitionalPhrases) {
+            cleanedSolution = cleanedSolution.replace(pattern, '');
+        }
+
+        return cleanedSolution.trim();
+    }
+
+    /**
+     * Utility method to escape special characters in regex
+     */
+    private escapeRegExp(string: string): string {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 }

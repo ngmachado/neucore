@@ -44,8 +44,5 @@ export * from './character';
 // Validation
 export * from './validation';
 
-// Disabled due to missing module
-// export * from './reasoning';
-
 // Reasoning system
-// export * from './reasoning'; 
+export * from './reasoning'; 

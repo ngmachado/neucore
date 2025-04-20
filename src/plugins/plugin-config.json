@@ -19,8 +19,19 @@
         "relationship:create",
         "relationship:get",
         "relationship:update",
-        "relationship:delete"
+        "relationship:delete",
+        "document:embed",
+        "document:search",
+        "document:delete"
     ],
+    "config": {
+        "openai": {
+            "embeddingModel": "text-embedding-3-large"
+        },
+        "database": {
+            "path": "data/neurocore.db"
+        }
+    },
     "plugins": {
         "alfafrens": {
             "enabled": true,
@@ -44,6 +55,10 @@
         },
         "relationship": {
             "enabled": true
+        },
+        "document-manager": {
+            "enabled": true,
+            "dbPath": "data/neurocore.db"
         }
     }
 }

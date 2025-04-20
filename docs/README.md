@@ -1,8 +1,8 @@
-# NeuroCore Documentation
+# neucore Documentation
 
 > **Navigation**: [Back to Main README](../README.md)
 
-This directory contains comprehensive documentation for the NeuroCore framework.
+This directory contains comprehensive documentation for the neucore framework.
 
 ## Documentation Index
 
@@ -20,6 +20,12 @@ This directory contains comprehensive documentation for the NeuroCore framework.
 - [Template System](template-system.md) - Dynamic content generation with variable substitution
 - [Validation System](VALIDATION.md) - Utilities for runtime type checking and validation
 - [Character Traits System](CHARACTER.md) - System for AI personality and traits
+
+### Plugin Documentation
+- [Template Plugin](TEMPLATE-PLUGIN.md) - Documentation for the Template Plugin
+- [Relationship Plugin](RELATIONSHIP-PLUGIN.md) - Documentation for the Relationship Plugin (development)
+- [Plugin Implementation Guide](PLUGIN-IMPLEMENTATION-GUIDE.md) - Standards for plugin implementation
+- [Plugin Architecture](PLUGIN-ARCHITECTURE.md) - Explanation of the plugin system architecture
 
 ### Development Guides
 

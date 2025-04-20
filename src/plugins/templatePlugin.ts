@@ -20,6 +20,24 @@ export class TemplatePlugin implements IPlugin {
     private dataRegistry: ITemplateDataRegistry;
     private templateEngine: TemplateEngine;
 
+    // Add document configuration for AI context
+    public documentConfig = {
+        documents: [
+            {
+                path: 'src/plugins/templatePlugin.md',
+                type: 'markdown',
+                fragmentSize: 800,
+                fragmentOverlap: 150,
+                metadata: {
+                    title: 'Template Plugin Documentation',
+                    category: 'plugin-docs',
+                    description: 'Documentation for the Template Plugin'
+                }
+            }
+        ],
+        alwaysInclude: true
+    };
+
     constructor(options: { logger: any }) {
         this.logger = options.logger;
 

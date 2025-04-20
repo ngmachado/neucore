@@ -1,6 +1,10 @@
-# Validation System
+# neucore Validation System
 
-The NeuroCore framework provides a standardized validation system to ensure consistency, reliability, and security across all components. This document outlines the validation utilities and how to use them in your code.
+The Validation System provides utilities for runtime type checking and data validation.
+
+> **Navigation**: [Back to README](../README.md) | [System Documentation](SYSTEM-DOCUMENTATION.md)
+
+The neucore framework provides a standardized validation system to ensure consistency, reliability, and security across all components. This document outlines the validation utilities and how to use them in your code.
 
 ## Core Validation Principles
 

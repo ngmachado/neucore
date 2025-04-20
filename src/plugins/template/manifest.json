@@ -1,0 +1,17 @@
+{
+    "id": "my-plugin",
+    "name": "My Plugin",
+    "version": "1.0.0",
+    "entryPoint": "index.ts",
+    "enabled": true,
+    "intentMapping": {
+        "my-plugin:action": {
+            "priority": 10,
+            "enabled": true
+        }
+    },
+    "config": {
+        "setting1": "value1",
+        "setting2": "value2"
+    }
+}

@@ -2,283 +2,145 @@
  * Database interfaces for the NeuroCore framework
  */
 
-import { UUID } from '../../types';
-import { Relationship } from '../../types/framework';
-import { Goal } from '../../types/goals';
+import { UUID, Entity as CoreEntity, Namespace as CoreNamespace, NamespaceMember as CoreNamespaceMember, Memory, Goal as CoreGoal, Relationship as CoreRelationship, Knowledge as CoreKnowledge, CacheEntry as CoreCacheEntry } from '../types';
 
-/**
- * Database query options
- */
+export interface Entity extends CoreEntity {
+    name?: string;
+    type: string;
+    content: string;
+    metadata?: Record<string, any>;
+}
+
+export interface Namespace extends CoreNamespace { }
+
+export interface NamespaceMember extends CoreNamespaceMember {
+    role: string;
+}
+
+export interface MemoryEntity extends Entity {
+    entityId?: UUID;
+    namespaceId?: UUID;
+    agentId?: UUID;
+    isUnique: boolean;
+    embedding?: number[];
+}
+
+export interface Goal extends Entity {
+    entityId?: UUID;
+    namespaceId?: UUID;
+    name: string;
+    status: string;
+    description?: string;
+    objectives: any[];
+    userId: UUID;
+}
+
+export interface Relationship extends Entity {
+    sourceId: UUID;
+    targetId: UUID;
+    type: string;
+    metadata: Record<string, any>;
+    userA?: UUID;
+    userB?: UUID;
+    status?: string;
+}
+
+export interface Knowledge extends Entity {
+    type: string;
+    metadata: Record<string, any>;
+}
+
+export interface CacheEntry {
+    key: string;
+    value: string;
+    entityId: UUID;
+    expiresAt?: Date;
+    createdAt: Date;
+}
+
 export interface QueryOptions {
+    where?: Record<string, any>;
+    orderBy?: string;
+    orderDirection?: 'ASC' | 'DESC';
     limit?: number;
     offset?: number;
-    order?: 'asc' | 'desc';
-    orderBy?: string;
-    roomId?: UUID;
-    userId?: UUID;
-    agentId?: UUID;
-    before?: Date;
-    after?: Date;
-    [key: string]: any;
+    userId?: string;
+    namespaceId?: string;
 }
 
-/**
- * Memory entity interface for database operations
- */
-export interface MemoryEntity {
-    id: UUID;
-    roomId: UUID;
-    userId: UUID;
-    agentId?: UUID;
-    content: any;
-    embedding?: number[];
-    metadata?: Record<string, any>;
-    timestamp: Date;
-    type?: string;
+export interface VectorSearchOptions {
+    query: string;
+    limit?: number;
+    threshold?: number;
 }
 
-/**
- * Relationship entity interface for database operations
- */
-export interface RelationshipEntity extends Relationship {
-    // Base interface already complete, just creating the Entity alias for consistency
+export interface DatabaseStatus {
+    connected: boolean;
+    memoryCount: number;
+    relationshipCount: number;
+    goalCount: number;
 }
 
-/**
- * Goal entity interface for database operations
- */
-export interface GoalEntity extends Goal {
-    // Base interface already complete, just creating the Entity alias for consistency
-}
-
-/**
- * Vector search options
- */
-export interface VectorSearchOptions extends QueryOptions {
-    embedding: number[];
-    count?: number;
-    similarityThreshold?: number;
-}
-
-/**
- * Database adapter interface
- */
 export interface DatabaseAdapter {
-    /**
-     * Connect to the database
-     */
     connect(): Promise<void>;
-
-    /**
-     * Disconnect from the database
-     */
     disconnect(): Promise<void>;
+    getStatus(): Promise<DatabaseStatus>;
+    executeQuery<T>(query: string, params?: any[]): Promise<T[]>;
 
-    /**
-     * Create a memory record
-     * @param memory Memory to create
-     * @returns The created memory with ID
-     */
-    createMemory(memory: MemoryEntity): Promise<MemoryEntity>;
+    // Memory operations
+    createMemory(memory: Omit<MemoryEntity, 'id' | 'createdAt'>): Promise<MemoryEntity>;
+    getMemory(id: UUID): Promise<MemoryEntity>;
+    updateMemory(id: UUID, updates: Partial<MemoryEntity>): Promise<MemoryEntity>;
+    deleteMemory(id: UUID): Promise<void>;
+    listMemories(options?: QueryOptions): Promise<MemoryEntity[]>;
+    searchByEmbedding(embedding: number[], options: VectorSearchOptions): Promise<MemoryEntity[]>;
 
-    /**
-     * Get a memory by ID
-     * @param id Memory ID
-     * @returns The memory object
-     */
-    getMemory(id: UUID): Promise<MemoryEntity | null>;
+    // Relationship operations
+    createRelationship(relationship: Omit<Relationship, 'id' | 'createdAt'>): Promise<Relationship>;
+    getRelationship(id: UUID): Promise<Relationship>;
+    updateRelationship(id: UUID, updates: Partial<Relationship>): Promise<Relationship>;
+    deleteRelationship(id: UUID): Promise<void>;
+    getRelationships(entityId: UUID): Promise<Relationship[]>;
 
-    /**
-     * Update a memory
-     * @param id Memory ID
-     * @param data Updated memory data
-     * @returns The updated memory
-     */
-    updateMemory(id: UUID, data: Partial<MemoryEntity>): Promise<MemoryEntity>;
+    // Goal operations
+    createGoal(goal: Omit<Goal, 'id' | 'createdAt'>): Promise<Goal>;
+    getGoal(id: UUID): Promise<Goal>;
+    updateGoal(id: UUID, updates: Partial<Goal>): Promise<Goal>;
+    deleteGoal(id: UUID): Promise<void>;
+    deleteAllGoals(): Promise<void>;
+    listGoals(options?: QueryOptions): Promise<Goal[]>;
 
-    /**
-     * Delete a memory
-     * @param id Memory ID
-     * @returns Success status
-     */
-    deleteMemory(id: UUID): Promise<boolean>;
+    // Knowledge operations
+    createKnowledge(knowledge: Omit<Knowledge, 'id' | 'createdAt'>): Promise<Knowledge>;
+    getKnowledge(id: UUID): Promise<Knowledge>;
+    updateKnowledge(id: UUID, updates: Partial<Knowledge>): Promise<Knowledge>;
+    deleteKnowledge(id: UUID): Promise<void>;
+    listKnowledge(options?: QueryOptions): Promise<Knowledge[]>;
 
-    /**
-     * Get memories matching the query options
-     * @param options Query options
-     * @returns Array of memories
-     */
-    getMemories(options: QueryOptions): Promise<MemoryEntity[]>;
+    // Cache operations
+    setCacheEntry(entry: Omit<CacheEntry, 'createdAt'>): Promise<CacheEntry>;
+    getCacheEntry(key: string): Promise<CacheEntry | null>;
+    deleteCacheEntry(key: string): Promise<void>;
+    listCacheEntries(options?: QueryOptions): Promise<CacheEntry[]>;
 
-    /**
-     * Search memories by vector embedding similarity
-     * @param options Vector search options
-     * @returns Array of memories with similarity scores
-     */
-    searchByEmbedding(options: VectorSearchOptions): Promise<Array<MemoryEntity & { similarity: number }>>;
+    // Entity operations
+    createEntity(entity: Omit<Entity, 'id' | 'createdAt'>): Promise<Entity>;
+    getEntity(id: UUID): Promise<Entity | null>;
+    updateEntity(id: UUID, updates: Partial<Entity>): Promise<Entity>;
+    deleteEntity(id: UUID): Promise<void>;
+    listEntities(options?: QueryOptions): Promise<Entity[]>;
 
-    /**
-     * Create a table if it doesn't exist
-     * @param tableName Table name
-     * @param schema Table schema
-     */
-    createTableIfNotExists(tableName: string, schema: Record<string, any>): Promise<void>;
+    // Namespace operations
+    createNamespace(namespace: Omit<Namespace, 'id' | 'createdAt'>): Promise<Namespace>;
+    getNamespace(id: UUID): Promise<Namespace | null>;
+    updateNamespace(id: UUID, updates: Partial<Namespace>): Promise<Namespace>;
+    deleteNamespace(id: UUID): Promise<void>;
+    listNamespaces(options?: QueryOptions): Promise<Namespace[]>;
 
-    /**
-     * Execute a raw query
-     * @param query Query string
-     * @param params Query parameters
-     * @returns Query results
-     */
-    executeQuery<T = any>(query: string, params?: any[]): Promise<T[]>;
-
-    /**
-     * Get database status
-     * @returns Status information
-     */
-    getStatus(): Promise<Record<string, any>>;
-
-    /**
-     * Create a relationship between entities
-     * @param relationship Relationship to create
-     * @returns The created relationship with ID
-     */
-    createRelationship(relationship: RelationshipEntity): Promise<RelationshipEntity>;
-
-    /**
-     * Get a relationship by ID
-     * @param id Relationship ID
-     * @returns The relationship object
-     */
-    getRelationship(id: UUID): Promise<RelationshipEntity | null>;
-
-    /**
-     * Get a relationship between two entities
-     * @param entityA First entity ID
-     * @param entityB Second entity ID
-     * @returns The relationship object or null if not found
-     */
-    getRelationshipBetween(entityA: UUID, entityB: UUID): Promise<RelationshipEntity | null>;
-
-    /**
-     * Update a relationship
-     * @param id Relationship ID
-     * @param data Updated relationship data
-     * @returns The updated relationship
-     */
-    updateRelationship(id: UUID, data: Partial<RelationshipEntity>): Promise<RelationshipEntity>;
-
-    /**
-     * Delete a relationship
-     * @param id Relationship ID
-     * @returns Success status
-     */
-    deleteRelationship(id: UUID): Promise<boolean>;
-
-    /**
-     * Get relationships for an entity
-     * @param entityId Entity ID
-     * @param options Query options
-     * @returns Array of relationships
-     */
-    getRelationships(entityId: UUID, options?: QueryOptions): Promise<RelationshipEntity[]>;
-
-    /**
-     * Retrieve goals based on query parameters
-     * @param params Search parameters for goals
-     * @returns List of matching goals
-     */
-    getGoals(params: {
-        contextId: UUID;
-        userId?: UUID;
-        agentId?: UUID;
-        onlyInProgress?: boolean;
-        count?: number;
-    }): Promise<GoalEntity[]>;
-
-    /**
-     * Get a goal by ID
-     * @param id Goal ID
-     * @returns The goal or null if not found
-     */
-    getGoal(id: UUID): Promise<GoalEntity | null>;
-
-    /**
-     * Create a new goal
-     * @param goal Goal to create
-     * @returns The created goal with ID
-     */
-    createGoal(goal: GoalEntity): Promise<GoalEntity>;
-
-    /**
-     * Update an existing goal
-     * @param id Goal ID
-     * @param data Updated goal data
-     * @returns The updated goal
-     */
-    updateGoal(id: UUID, data: Partial<GoalEntity>): Promise<GoalEntity>;
-
-    /**
-     * Delete a goal
-     * @param id Goal ID
-     * @returns Success status
-     */
-    deleteGoal(id: UUID): Promise<boolean>;
-
-    /**
-     * Delete all goals in a context
-     * @param contextId Context ID
-     * @returns Success status
-     */
-    deleteAllGoals(contextId: UUID): Promise<boolean>;
-}
-
-/**
- * Relationship database adapter interface
- */
-export interface RelationshipDatabaseAdapter {
-    /**
-     * Create a relationship between entities
-     * @param relationship Relationship to create
-     * @returns The created relationship with ID
-     */
-    createRelationship(relationship: RelationshipEntity): Promise<RelationshipEntity>;
-
-    /**
-     * Get a relationship by ID
-     * @param id Relationship ID
-     * @returns The relationship object
-     */
-    getRelationship(id: UUID): Promise<RelationshipEntity | null>;
-
-    /**
-     * Get a relationship between two entities
-     * @param entityA First entity ID
-     * @param entityB Second entity ID
-     * @returns The relationship object or null if not found
-     */
-    getRelationshipBetween(entityA: UUID, entityB: UUID): Promise<RelationshipEntity | null>;
-
-    /**
-     * Update a relationship
-     * @param id Relationship ID
-     * @param data Updated relationship data
-     * @returns The updated relationship
-     */
-    updateRelationship(id: UUID, data: Partial<RelationshipEntity>): Promise<RelationshipEntity>;
-
-    /**
-     * Delete a relationship
-     * @param id Relationship ID
-     * @returns Success status
-     */
-    deleteRelationship(id: UUID): Promise<boolean>;
-
-    /**
-     * Get relationships for an entity
-     * @param entityId Entity ID
-     * @param options Query options
-     * @returns Array of relationships
-     */
-    getRelationships(entityId: UUID, options?: QueryOptions): Promise<RelationshipEntity[]>;
+    // Namespace member operations
+    addNamespaceMember(member: Omit<NamespaceMember, 'id' | 'createdAt'>): Promise<NamespaceMember>;
+    getNamespaceMember(id: UUID): Promise<NamespaceMember | null>;
+    updateNamespaceMember(id: UUID, updates: Partial<NamespaceMember>): Promise<NamespaceMember>;
+    removeNamespaceMember(id: UUID): Promise<void>;
+    listNamespaceMembers(namespaceId: UUID, options?: QueryOptions): Promise<NamespaceMember[]>;
 } 

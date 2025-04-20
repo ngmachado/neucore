@@ -5,10 +5,36 @@
 // Core types
 export * from './types';
 
-// Core modules
-export * from './core';
-export * from './core/database/interfaces';
-export * from './core/database';
+// Core modules - export selectively to avoid name conflicts
+// Remove the wildcard export that causes conflicts
+// export * from './core';
+
+// Remove non-existent exports
+// export {
+//     getLogger,
+//     LogLevel,
+//     LogOptions
+// } from './core/logging';
+
+export {
+    DatabaseAdapter,
+    DatabaseStatus,
+    QueryOptions,
+    VectorSearchOptions,
+    Entity,
+    MemoryEntity,
+    Namespace,
+    NamespaceMember,
+    Knowledge,
+    CacheEntry
+} from './core/database/interfaces';
+
+// Replace wildcard with specific exports to avoid naming conflicts
+export {
+    DatabaseService,
+    // Exclude Goal and Relationship exports that conflict with ./types
+} from './core/database';
+
 export * from './core/logging';
 export * from './core/errors';
 export * from './core/memory/types';

@@ -136,3 +136,9 @@ dist
 .pnp.*
 
 .DS_Store
+
+# Database files
+data/
+*.db
+*.sqlite
+*.sqlite3
