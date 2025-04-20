@@ -1,0 +1,24 @@
+{
+    "id": "document-manager",
+    "name": "Document Manager Plugin",
+    "version": "1.0.0",
+    "entryPoint": "index.ts",
+    "enabled": true,
+    "intentMapping": {
+        "document:embed": {
+            "priority": 10,
+            "enabled": true
+        },
+        "document:search": {
+            "priority": 10,
+            "enabled": true
+        },
+        "document:delete": {
+            "priority": 10,
+            "enabled": true
+        }
+    },
+    "config": {
+        "dbPath": "./data/neurocore.db"
+    }
+}

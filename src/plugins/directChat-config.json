@@ -1,0 +1,59 @@
+{
+    "name": "DirectChat",
+    "version": "1.0.0",
+    "description": "Plugin for direct chat interactions for testing",
+    "exposedIntents": [
+        {
+            "action": "alfafrens:testAI",
+            "description": "Process a test message and generate a response",
+            "parameters": {
+                "message": "The message to process",
+                "username": "The name of the user (optional)"
+            },
+            "returns": {
+                "response": "The generated response"
+            }
+        },
+        {
+            "action": "directChat:message",
+            "description": "Process a message and generate a response",
+            "parameters": {
+                "message": "The message to process",
+                "username": "The name of the user (optional)"
+            },
+            "returns": {
+                "response": "The generated response"
+            }
+        }
+    ],
+    "requiredIntents": [
+        {
+            "action": "character:load",
+            "description": "Load a character",
+            "required": false
+        },
+        {
+            "action": "character:apply",
+            "description": "Apply a character to generate a response",
+            "required": false
+        },
+        {
+            "action": "reasoning:analyze",
+            "description": "Use reasoning to analyze a query",
+            "required": false
+        }
+    ],
+    "config": {
+        "required": [],
+        "optional": [
+            "characterId",
+            "defaultCharacterName",
+            "useReasoning"
+        ],
+        "defaults": {
+            "defaultCharacterName": "Assistant",
+            "useReasoning": true
+        },
+        "environment": {}
+    }
+}

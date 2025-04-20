@@ -188,4 +188,36 @@ export interface FrameworkConfig {
             dimensions?: number;
         };
     };
+}
+
+export interface MCPConfig {
+    /**
+     * Knowledge processing configuration
+     */
+    knowledge?: {
+        /**
+         * Directories to process for knowledge
+         */
+        directories?: string[];
+
+        /**
+         * Default fragment size for knowledge processing
+         * @default 1000
+         */
+        fragmentSize?: number;
+
+        /**
+         * Default fragment overlap for knowledge processing
+         * @default 200
+         */
+        fragmentOverlap?: number;
+
+        /**
+         * Whether to process knowledge on startup
+         * @default true
+         */
+        processOnStartup?: boolean;
+    };
+
+    // ... rest of existing config ...
 } 

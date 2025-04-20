@@ -1,0 +1,26 @@
+{
+    "id": "direct-chat",
+    "name": "Direct Chat Plugin",
+    "version": "1.0.0",
+    "entryPoint": "index.ts",
+    "enabled": true,
+    "intentMapping": {
+        "directChat:message": {
+            "priority": 10,
+            "enabled": true
+        }
+    },
+    "config": {
+        "characterId": null,
+        "defaultCharacterName": "Assistant",
+        "useReasoning": true,
+        "context": {
+            "maxItems": 3
+        },
+        "reasoning": {
+            "model": "gpt-4o",
+            "temperature": 0.7,
+            "maxTokens": 500
+        }
+    }
+}

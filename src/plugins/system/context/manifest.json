@@ -1,0 +1,22 @@
+{
+    "id": "context",
+    "name": "Context Plugin",
+    "version": "1.0.0",
+    "entryPoint": "index.ts",
+    "enabled": true,
+    "intentMapping": {
+        "context:build": {
+            "priority": 10,
+            "enabled": true
+        },
+        "context:retrieve": {
+            "priority": 10,
+            "enabled": true
+        },
+        "context:process": {
+            "priority": 10,
+            "enabled": true
+        }
+    },
+    "config": {}
+}

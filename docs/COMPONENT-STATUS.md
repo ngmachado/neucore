@@ -1,6 +1,6 @@
-# NeuroCore Component Status
+# neucore Component Status
 
-This document tracks the implementation status of NeuroCore components.
+This document tracks the implementation status of various components in the neucore framework.
 
 > **Navigation**: [Back to README](../README.md) | [System Documentation](SYSTEM-DOCUMENTATION.md) | [Reasoning Documentation](REASONING.md)
 
@@ -16,7 +16,10 @@ This document tracks the implementation status of NeuroCore components.
 | Memory System | 🚧 | Basic functionality implemented |
 | Context Builder | 🚧 | Works with limitations |
 | Reasoning - Chain of Thought | ✅ | Fully implemented |
+| Reasoning - Socratic Method | ✅ | Fully implemented |
+| Reasoning - Dialogic Method | ✅ | Fully implemented |
 | Reasoning - Other Methods | 📝 | Only interfaces defined |
+| Template System | ✅ | Fully implemented |
 | Action System | 🚧 | Core functionality works |
 | RAG System | 🚧 | Basic implementation |
 | Goal Management | 🚧 | Core tracking works |
@@ -50,7 +53,7 @@ This document tracks the implementation status of NeuroCore components.
 Major changes planned for future versions:
 
 1. Complete OpenAI provider implementation
-2. Implement additional reasoning methods
+2. Continue implementing additional reasoning methods (already added Socratic and Dialogic Methods)
 3. Enhance error handling and validation
 4. Add proper telemetry and observability
 5. Implement missing database adapters 

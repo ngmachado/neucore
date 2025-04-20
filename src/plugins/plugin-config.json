@@ -1,0 +1,64 @@
+{
+    "name": "Neurocore Plugins",
+    "version": "0.1.0",
+    "description": "Core plugin collection for Neurocore",
+    "exposedIntents": [
+        "alfafrens:getMessages",
+        "alfafrens:sendMessage",
+        "alfafrens:replyMessage",
+        "alfafrens:createPost",
+        "alfafrens:startPolling",
+        "alfafrens:stopPolling",
+        "character:load",
+        "character:apply",
+        "context:build",
+        "context:retrieve",
+        "context:process",
+        "reasoning:analyze",
+        "reasoning:solve",
+        "relationship:create",
+        "relationship:get",
+        "relationship:update",
+        "relationship:delete",
+        "document:embed",
+        "document:search",
+        "document:delete"
+    ],
+    "config": {
+        "openai": {
+            "embeddingModel": "text-embedding-3-large"
+        },
+        "database": {
+            "path": "data/neurocore.db"
+        }
+    },
+    "plugins": {
+        "alfafrens": {
+            "enabled": true,
+            "apiKey": "${ALFAFRENS_API_KEY}",
+            "userId": "${ALFAFRENS_USER_ID}",
+            "channelId": "${ALFAFRENS_CHANNEL_ID}",
+            "username": "${ALFAFRENS_USERNAME}",
+            "pollInterval": 30,
+            "enablePost": false,
+            "postIntervalMin": 3600,
+            "postIntervalMax": 7200
+        },
+        "character": {
+            "enabled": true
+        },
+        "context": {
+            "enabled": true
+        },
+        "reasoning": {
+            "enabled": true
+        },
+        "relationship": {
+            "enabled": true
+        },
+        "document-manager": {
+            "enabled": true,
+            "dbPath": "data/neurocore.db"
+        }
+    }
+}

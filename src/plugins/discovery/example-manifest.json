@@ -1,0 +1,35 @@
+{
+    "id": "custom-email",
+    "name": "Custom Email Plugin",
+    "version": "1.0.0",
+    "entryPoint": "index.ts",
+    "enabled": true,
+    "substitutes": [
+        "email"
+    ],
+    "intentMapping": {
+        "email:send": {
+            "priority": 10,
+            "enabled": true
+        },
+        "email:read": {
+            "priority": 10,
+            "enabled": true
+        },
+        "email:search": {
+            "priority": 10,
+            "enabled": true
+        }
+    },
+    "config": {
+        "provider": "gmail",
+        "credentials": {
+            "clientId": "YOUR_CLIENT_ID",
+            "redirectUri": "YOUR_REDIRECT_URI"
+        },
+        "options": {
+            "maxResults": 20,
+            "attachmentSizeLimit": 10485760
+        }
+    }
+}

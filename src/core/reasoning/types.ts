@@ -32,6 +32,11 @@ export enum ReasoningMethod {
     SOCRATIC = 'socratic',
 
     /**
+     * Dialogic Method: Reasoning through constructive dialog between proposer and critic
+     */
+    DIALOGIC = 'dialogic',
+
+    /**
      * First Principles: Breaking down problems to fundamental elements
      */
     FIRST_PRINCIPLES = 'first_principles',

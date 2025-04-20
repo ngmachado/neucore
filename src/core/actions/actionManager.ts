@@ -14,6 +14,18 @@ import {
     IActionManager
 } from './types';
 import { LogLevel } from '../../types';
+import {
+    requireValue,
+    isString,
+    isNumber,
+    isBoolean,
+    isObject,
+    isArray,
+    requireOneOf,
+    validateParameters as validateParamsWithSchema,
+    ParameterSchema,
+    validateActionDefinition as validateActionDef
+} from '../validation';
 
 /**
  * Action Manager implementation
@@ -287,43 +299,23 @@ export class ActionManager implements IActionManager {
      * @throws Error if the definition is invalid
      */
     private validateActionDefinition(definition: ActionDefinition): void {
-        // Required fields
-        if (!definition.id) throw new Error('Action definition missing ID');
-        if (!definition.name) throw new Error('Action definition missing name');
-        if (!definition.description) throw new Error('Action definition missing description');
+        // Use core validation function
+        validateActionDef(definition);
 
-        // Validate parameters
-        if (!Array.isArray(definition.parameters)) {
-            throw new Error('Action parameters must be an array');
-        }
-
+        // Additional validation specific to ActionManager
         // Check for duplicate parameter names
         const paramNames = new Set<string>();
         for (const param of definition.parameters) {
-            if (!param.name) {
-                throw new Error('Parameter missing name');
-            }
-
             if (paramNames.has(param.name)) {
                 throw new Error(`Duplicate parameter name: ${param.name}`);
             }
 
             paramNames.add(param.name);
         }
-
-        // Check required permissions is array
-        if (!Array.isArray(definition.requiredPermissions)) {
-            throw new Error('Required permissions must be an array');
-        }
-
-        // Check effects is array
-        if (!Array.isArray(definition.effects)) {
-            throw new Error('Effects must be an array');
-        }
     }
 
     /**
-     * Validate parameters against their definitions
+     * Validate parameter values against their definitions
      * @param parameters Parameters to validate
      * @param parameterDefs Parameter definitions
      * @returns Validation result
@@ -332,76 +324,25 @@ export class ActionManager implements IActionManager {
         parameters: Record<string, any>,
         parameterDefs: ActionParameter[]
     ): { valid: boolean; error?: string } {
-        // Check for required parameters
-        for (const paramDef of parameterDefs) {
-            if (paramDef.required && !(paramDef.name in parameters)) {
-                return {
-                    valid: false,
-                    error: `Missing required parameter: ${paramDef.name}`
-                };
-            }
+        try {
+            // Convert ActionParameter[] to ParameterSchema[]
+            const paramSchema: ParameterSchema[] = parameterDefs.map(param => ({
+                name: param.name,
+                type: param.type,
+                required: param.required,
+                enum: param.enum,
+                validate: param.validate,
+                schema: param.schema
+            }));
+
+            // Use the standard validation utility
+            return validateParamsWithSchema(parameters, paramSchema);
+        } catch (error) {
+            return {
+                valid: false,
+                error: error instanceof Error ? error.message : `Validation error: ${String(error)}`
+            };
         }
-
-        // Validate each provided parameter
-        for (const [name, value] of Object.entries(parameters)) {
-            // Find the parameter definition
-            const paramDef = parameterDefs.find(p => p.name === name);
-
-            // Skip validation for parameters not in the definition
-            if (!paramDef) continue;
-
-            // Check type
-            if (paramDef.type === 'string' && typeof value !== 'string') {
-                return {
-                    valid: false,
-                    error: `Parameter ${name} must be a string`
-                };
-            } else if (paramDef.type === 'number' && typeof value !== 'number') {
-                return {
-                    valid: false,
-                    error: `Parameter ${name} must be a number`
-                };
-            } else if (paramDef.type === 'boolean' && typeof value !== 'boolean') {
-                return {
-                    valid: false,
-                    error: `Parameter ${name} must be a boolean`
-                };
-            } else if (paramDef.type === 'object' && (typeof value !== 'object' || Array.isArray(value))) {
-                return {
-                    valid: false,
-                    error: `Parameter ${name} must be an object`
-                };
-            } else if (paramDef.type === 'array' && !Array.isArray(value)) {
-                return {
-                    valid: false,
-                    error: `Parameter ${name} must be an array`
-                };
-            }
-
-            // Check enum values
-            if (paramDef.enum && Array.isArray(paramDef.enum) && !paramDef.enum.includes(value)) {
-                return {
-                    valid: false,
-                    error: `Parameter ${name} must be one of: ${paramDef.enum.join(', ')}`
-                };
-            }
-
-            // Run custom validation function if provided
-            if (paramDef.validate) {
-                const validationResult = paramDef.validate(value);
-
-                if (validationResult !== true && validationResult !== undefined) {
-                    return {
-                        valid: false,
-                        error: typeof validationResult === 'string'
-                            ? validationResult
-                            : `Invalid value for parameter ${name}`
-                    };
-                }
-            }
-        }
-
-        return { valid: true };
     }
 
     /**

@@ -186,4 +186,256 @@ export function isBoolean(value: unknown): value is boolean {
 
 /**
  * Validation utilities for specific NeuroCore types can be added below
- */ 
+ */
+
+/**
+ * Parameter schema definition for validation
+ */
+export interface ParameterSchema {
+    /**
+     * Name of the parameter
+     */
+    name: string;
+
+    /**
+     * Type of the parameter
+     */
+    type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+
+    /**
+     * Whether the parameter is required
+     */
+    required: boolean;
+
+    /**
+     * For validated parameters, allowed values
+     */
+    enum?: any[];
+
+    /**
+     * For array or object types, the schema of items/properties
+     */
+    schema?: ParameterSchema[] | Record<string, ParameterSchema>;
+
+    /**
+     * Custom validation function
+     */
+    validate?: (value: any) => boolean | string;
+}
+
+/**
+ * Validates parameters against a schema
+ * 
+ * @param parameters Parameters to validate
+ * @param paramSchema Schema to validate against
+ * @returns Validation result object
+ */
+export function validateParameters(
+    parameters: Record<string, any>,
+    paramSchema: ParameterSchema[]
+): { valid: boolean; error?: string } {
+    try {
+        // Check for required parameters
+        for (const schema of paramSchema) {
+            if (schema.required && !(schema.name in parameters)) {
+                return {
+                    valid: false,
+                    error: `Missing required parameter: ${schema.name}`
+                };
+            }
+        }
+
+        // Validate each provided parameter
+        for (const [name, value] of Object.entries(parameters)) {
+            // Find the parameter schema
+            const schema = paramSchema.find(p => p.name === name);
+
+            // Skip validation for parameters not in the schema
+            if (!schema) continue;
+
+            // Validate type
+            if (schema.type === 'string' && !isString(value)) {
+                return {
+                    valid: false,
+                    error: `Parameter ${name} must be a string`
+                };
+            } else if (schema.type === 'number' && !isNumber(value)) {
+                return {
+                    valid: false,
+                    error: `Parameter ${name} must be a number`
+                };
+            } else if (schema.type === 'boolean' && !isBoolean(value)) {
+                return {
+                    valid: false,
+                    error: `Parameter ${name} must be a boolean`
+                };
+            } else if (schema.type === 'object' && !isObject(value)) {
+                return {
+                    valid: false,
+                    error: `Parameter ${name} must be an object`
+                };
+            } else if (schema.type === 'array' && !isArray(value)) {
+                return {
+                    valid: false,
+                    error: `Parameter ${name} must be an array`
+                };
+            }
+
+            // Check enum values
+            if (schema.enum && Array.isArray(schema.enum)) {
+                try {
+                    requireOneOf(value, schema.enum, name);
+                } catch (error) {
+                    return {
+                        valid: false,
+                        error: (error as Error).message
+                    };
+                }
+            }
+
+            // Validate nested schema for objects
+            if (schema.type === 'object' && schema.schema && isObject(schema.schema) && isObject(value)) {
+                const nestedSchemas = Object.entries(schema.schema).map(
+                    ([key, subSchema]) => ({
+                        ...subSchema,
+                        name: key
+                    }) as ParameterSchema
+                );
+
+                const nestedResult = validateParameters(value, nestedSchemas);
+                if (!nestedResult.valid) {
+                    return {
+                        valid: false,
+                        error: `Invalid object in ${name}: ${nestedResult.error}`
+                    };
+                }
+            }
+
+            // Validate array items against schema
+            if (schema.type === 'array' && schema.schema && Array.isArray(value)) {
+                const itemSchema = Array.isArray(schema.schema) ? schema.schema[0] : schema.schema;
+
+                for (let i = 0; i < value.length; i++) {
+                    const item = value[i];
+
+                    if (isObject(itemSchema)) {
+                        const itemSchemaWithName = {
+                            ...itemSchema,
+                            name: `${name}[${i}]`
+                        } as ParameterSchema;
+
+                        const itemResult = validateParameters(
+                            { [`${name}[${i}]`]: item },
+                            [itemSchemaWithName]
+                        );
+
+                        if (!itemResult.valid) {
+                            return {
+                                valid: false,
+                                error: itemResult.error
+                            };
+                        }
+                    }
+                }
+            }
+
+            // Run custom validation function if provided
+            if (schema.validate) {
+                const validationResult = schema.validate(value);
+
+                if (validationResult !== true && validationResult !== undefined) {
+                    return {
+                        valid: false,
+                        error: typeof validationResult === 'string'
+                            ? validationResult
+                            : `Invalid value for parameter ${name}`
+                    };
+                }
+            }
+        }
+
+        return { valid: true };
+    } catch (error) {
+        return {
+            valid: false,
+            error: error instanceof Error ? error.message : `Validation error: ${String(error)}`
+        };
+    }
+}
+
+/**
+ * Validates an action definition
+ * 
+ * @param definition The action definition to validate
+ * @throws Error if the definition is invalid
+ */
+export function validateActionDefinition(definition: any): void {
+    // Check required properties
+    requireProperties(definition, ['id', 'name', 'description', 'parameters', 'effects', 'requiredPermissions', 'enabled', 'visible'], 'ActionDefinition');
+
+    // Validate ID
+    requireNonEmptyString(definition.id, 'ActionDefinition.id');
+
+    // Validate name
+    requireNonEmptyString(definition.name, 'ActionDefinition.name');
+
+    // Validate description
+    requireNonEmptyString(definition.description, 'ActionDefinition.description');
+
+    // Validate parameters is array
+    if (!isArray(definition.parameters)) {
+        throw new Error('ActionDefinition.parameters must be an array');
+    }
+
+    // Validate each parameter
+    for (let i = 0; i < definition.parameters.length; i++) {
+        const param = definition.parameters[i];
+        const paramPath = `ActionDefinition.parameters[${i}]`;
+
+        // Check required parameter properties
+        requireProperties(param, ['name', 'description', 'required', 'type'], paramPath);
+
+        // Validate parameter name
+        requireNonEmptyString(param.name, `${paramPath}.name`);
+
+        // Validate parameter description
+        requireNonEmptyString(param.description, `${paramPath}.description`);
+
+        // Validate parameter type
+        requireOneOf(
+            param.type,
+            ['string', 'number', 'boolean', 'object', 'array'],
+            `${paramPath}.type`
+        );
+
+        // Validate required is a boolean
+        if (!isBoolean(param.required)) {
+            throw new Error(`${paramPath}.required must be a boolean`);
+        }
+
+        // Validate enum if present
+        if ('enum' in param && param.enum !== undefined && !isArray(param.enum)) {
+            throw new Error(`${paramPath}.enum must be an array`);
+        }
+    }
+
+    // Validate effects array
+    if (!isArray(definition.effects)) {
+        throw new Error('ActionDefinition.effects must be an array');
+    }
+
+    // Validate requiredPermissions array
+    if (!isArray(definition.requiredPermissions)) {
+        throw new Error('ActionDefinition.requiredPermissions must be an array');
+    }
+
+    // Validate enabled is boolean
+    if (!isBoolean(definition.enabled)) {
+        throw new Error('ActionDefinition.enabled must be a boolean');
+    }
+
+    // Validate visible is boolean
+    if (!isBoolean(definition.visible)) {
+        throw new Error('ActionDefinition.visible must be a boolean');
+    }
+} 

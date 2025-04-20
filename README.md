@@ -1,19 +1,21 @@
-# NeuroCore
+# neucore
 
 Modern AI framework for building context-aware AI applications.
 
-> **Early Development Notice**: NeuroCore is currently in early development (v0.0.1). APIs may change significantly between versions. See [Component Status](COMPONENT-STATUS.md) for implementation details.
+> **Early Development Notice**: neucore is currently in early development (v0.0.1). APIs may change significantly between versions. See [Component Status](docs/COMPONENT-STATUS.md) for implementation details.
 
 ## Overview
 
-NeuroCore provides the essential building blocks for creating sophisticated AI applications with memory, context management, reasoning capabilities, and plugin-based extensibility. It's designed to be modular, flexible, and performant.
+neucore provides the essential building blocks for creating sophisticated AI applications with memory, context management, reasoning capabilities, and plugin-based extensibility. It's designed to be modular, flexible, and performant.
 
 ## Key Features
 
 - **Memory Management**: Store and retrieve conversations, documents, and other data with vector embeddings for semantic search
 - **Context Building**: Intelligently select relevant context for LLM prompts
 - **Reasoning System**: Structured approaches to complex reasoning (Chain of Thought, etc.)
+- **Template System**: Dynamic content generation with variable substitution and formatting
 - **Action System**: Define and execute concrete operations with validation
+- **Character Traits System**: Define and apply consistent AI personalities and styles
 - **Model Context Protocol (MCP)**: Structured approach to AI interactions
 - **Provider Adapters**: Support for multiple AI providers (currently Anthropic, with OpenAI planned)
 - **RAG System**: Enhance responses with knowledge retrieval and processing
@@ -22,7 +24,7 @@ NeuroCore provides the essential building blocks for creating sophisticated AI a
 ## Installation
 
 ```bash
-npm install neurocore
+npm install neucore
 ```
 
 ## Quick Start
@@ -33,7 +35,7 @@ import {
   createContextBuilder,
   ChainOfThoughtReasoner,
   ReasoningMethod
-} from 'neurocore';
+} from 'neucore';
 
 // Initialize provider
 const providerFactory = createProviderFactory({
@@ -109,18 +111,21 @@ const results = await router.sendIntent(intent, {
 ## Directory Structure
 
 ```
-neurcore/
+neucore/
 ├── docs/                     # Documentation files
 │   ├── SYSTEM-DOCUMENTATION.md # System overview
 │   ├── COMPONENT-STATUS.md   # Implementation status
 │   ├── REASONING.md          # Reasoning system docs
+│   ├── CHARACTER.md          # Character system docs
 │   └── ...                   # Other documentation
 ├── src/
 │   ├── core/                  # Core framework functionality
 │   │   ├── memory/            # Memory management
 │   │   ├── context/           # Context building
 │   │   ├── reasoning/         # Reasoning system
+│   │   ├── character/         # Character traits system 
 │   │   ├── actions/           # Action system 
+│   │   ├── templates/         # Template system
 │   │   ├── rag/               # Retrieval Augmented Generation
 │   │   ├── goals/             # Goal management
 │   │   ├── providers/         # Model providers

@@ -5,10 +5,36 @@
 // Core types
 export * from './types';
 
-// Core modules
-export * from './core';
-export * from './core/database/interfaces';
-export * from './core/database';
+// Core modules - export selectively to avoid name conflicts
+// Remove the wildcard export that causes conflicts
+// export * from './core';
+
+// Remove non-existent exports
+// export {
+//     getLogger,
+//     LogLevel,
+//     LogOptions
+// } from './core/logging';
+
+export {
+    DatabaseAdapter,
+    DatabaseStatus,
+    QueryOptions,
+    VectorSearchOptions,
+    Entity,
+    MemoryEntity,
+    Namespace,
+    NamespaceMember,
+    Knowledge,
+    CacheEntry
+} from './core/database/interfaces';
+
+// Replace wildcard with specific exports to avoid naming conflicts
+export {
+    DatabaseService,
+    // Exclude Goal and Relationship exports that conflict with ./types
+} from './core/database';
+
 export * from './core/logging';
 export * from './core/errors';
 export * from './core/memory/types';
@@ -18,9 +44,16 @@ export * from './core/rag';
 export * from './core/relationships';
 export * from './core/config';
 
-// MCP
+// Disabled due to missing module
+// export * from './core/reasoning';
+
+// MCP - explicitly export interfaces to avoid naming conflicts
 export { Intent } from './mcp/intent';
-export * from './mcp/interfaces/plugin';
+export {
+    IPlugin,
+    PluginResult,
+    RequestContext
+} from './mcp/interfaces/plugin';
 export * from './mcp/interfaces/provider';
 export * from './mcp/intentManager';
 export * from './mcp/mcp';

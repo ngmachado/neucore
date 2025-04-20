@@ -70,10 +70,7 @@ export class MemoryManager implements IMemoryManager {
             });
         } catch (error) {
             this.logger.log(LogLevel.ERROR, 'Failed to generate embedding', { error });
-
-            // Fallback to zero vector if embedding fails
-            memory.embedding = new Array(this.embeddingProvider.getDimensions()).fill(0);
-            this.logger.log(LogLevel.WARN, 'Used zero vector fallback for embedding');
+            throw new Error(`Failed to generate embedding: ${error instanceof Error ? error.message : String(error)}`);
         }
 
         return memory;

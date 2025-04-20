@@ -9,6 +9,9 @@
 // Re-export all framework types
 export * from './framework';
 
+// Re-export character types
+export * from './character';
+
 // Export RAG types
 export * from './rag';
 
@@ -91,4 +94,14 @@ export interface VectorDBConfig {
     similarityMetric?: 'cosine' | 'euclidean' | 'dot';
     indexType?: string;
     [key: string]: any;
+}
+
+/**
+ * Trait context for character traits application
+ */
+export enum TraitContext {
+    CHAT = 'chat',
+    POST = 'post',
+    SUMMARY = 'summary',
+    ANALYSIS = 'analysis'
 } 

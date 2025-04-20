@@ -1,8 +1,8 @@
-# NeuroCore Reasoner Implementation Guide
+# neucore Implementation Guide
 
-This guide provides step-by-step instructions for implementing new reasoning methods in the NeuroCore reasoning system.
+This guide provides detailed instructions for implementing custom components for the neucore framework.
 
-> **Navigation**: [Back to README](../README.md) | [Reasoning Documentation](REASONING.md) | [Future Methods](README-future-methods.md)
+> **Navigation**: [Back to README](../README.md) | [System Documentation](SYSTEM-DOCUMENTATION.md)
 
 ## Prerequisites
 

@@ -4,7 +4,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from '../database';
-import { GoalEntity } from '../database/interfaces';
 import { Goal, GoalStatus, Objective } from '../../types/goals';
 import { UUID } from '../../types';
 import { getLogger } from '../logging';
@@ -93,7 +92,7 @@ export class GoalManager {
             updatedAt: now
         }));
 
-        const goal: GoalEntity = {
+        const goal: Goal = {
             id: uuidv4() as UUID,
             contextId,
             userId,

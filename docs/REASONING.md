@@ -1,6 +1,6 @@
-# NeuroCore Reasoning System
+# neucore Reasoning System
 
-The NeuroCore Reasoning System provides a structured approach to AI reasoning through different reasoning methods that enhance decision-making and planning capabilities.
+The neucore Reasoning System provides a structured approach to AI reasoning through different reasoning methods that enhance decision-making and planning capabilities.
 
 > **Navigation**: [Back to README](../README.md) | [System Documentation](SYSTEM-DOCUMENTATION.md) | [Implementation Guide](IMPLEMENTATION-GUIDE.md) | [Future Methods](README-future-methods.md)
 
@@ -19,7 +19,7 @@ All reasoners implement a common interface (`IReasoner`) with these operations:
 - `setProgressCallback(callback)`: Sets a callback for progress updates
 
 ### Reasoning Methods
-NeuroCore supports multiple reasoning approaches:
+neucore supports multiple reasoning approaches:
 - **Chain of Thought**: Step-by-step reasoning (implemented)
 - **Tree of Thought**: Exploring multiple reasoning paths (planned)
 - **ReAct**: Reasoning and Acting in alternating sequence (planned)
@@ -58,6 +58,85 @@ The Chain of Thought reasoner supports task planning and goal orientation to enh
 - **Progress Tracking**: Monitors progress toward goal completion
 - **Goal Metadata**: Stores goal information in the reasoning graph
 - **Objective Updates**: Can update objective completion status
+
+## Socratic Reasoner
+
+The Socratic Reasoner implements questioning-based reasoning by using a series of questions and answers to explore a problem from multiple angles.
+
+### Features
+
+- **Question-based exploration**: Uses systematic questioning to uncover insights
+- **Multiple question paths**: Can explore different lines of questioning
+- **Synthesis**: Combines insights from questioning into a coherent conclusion
+- **Verification**: Validates the conclusion against insights
+- **Confidence assessment**: Adjusts confidence based on verification results
+- **Branching exploration**: Can pursue multiple parallel question paths
+
+### Key Capabilities
+
+- **Initial question generation**: Creates thoughtful starting questions to explore the problem
+- **Follow-up questions**: Generates relevant follow-up questions based on previous answers
+- **Insight accumulation**: Builds knowledge through sequential question-answer pairs
+- **Adaptive questioning**: Adapts questions based on previous answers
+- **Confidence estimation**: Estimates confidence level in the final conclusion
+
+### Usage Example
+
+Here's a basic example of using the Socratic Reasoner:
+
+```typescript
+import { SocraticReasoner } from '../reasoning/socraticReasoner';
+import { ReasoningMethod } from '../reasoning/types';
+import { IModelProvider } from '../providers/modelProvider';
+
+// Create a model provider instance
+const modelProvider: IModelProvider = /* your model provider */;
+
+// Create a Socratic reasoner
+const reasoner = new SocraticReasoner(modelProvider, {
+    method: ReasoningMethod.SOCRATIC
+});
+
+// Optional: Set progress callback
+reasoner.setProgressCallback((progress) => {
+    console.log(`Step ${progress.stepNumber}/${progress.totalSteps}: ${progress.currentStep.description}`);
+});
+
+// Use the reasoner with default options
+const result = await reasoner.reason("What are the ethical implications of AI in healthcare?");
+
+// Get the conclusion
+console.log("Conclusion:", result.conclusion);
+console.log("Confidence:", result.confidence);
+
+// Access the reasoning graph
+console.log("Question-answer pairs:", result.graph.nodes.length / 2);
+```
+
+### Advanced Configuration
+
+The Socratic Reasoner can be configured with various options:
+
+```typescript
+// Advanced configuration example
+const result = await reasoner.reason(query, {
+    temperature: 0.7,           // Temperature for generation
+    methodOptions: {
+        maxQuestions: 7,           // Maximum question-answer pairs
+        minQuestions: 3,           // Minimum question-answer pairs
+        includeVerification: true,  // Include verification phase
+        includeSynthesis: true,     // Include synthesis phase
+        seedQuestions: [            // Initial questions to use
+            "What are the core assumptions behind this problem?",
+            "How might different stakeholders view this situation?"
+        ],
+        exploreBranches: true,      // Explore multiple question paths
+        maxBranches: 2              // Maximum parallel branches to explore
+    }
+});
+```
+
+## Dialogic Reasoner
 
 ## Usage Example
 

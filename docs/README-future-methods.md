@@ -1,6 +1,6 @@
-# NeuroCore Future Reasoning Methods
+# neucore Future Reasoning Methods
 
-This document outlines the planned reasoning methods for the NeuroCore reasoning system that are referenced in the code but not yet fully implemented.
+This document outlines the planned reasoning methods for the neucore reasoning system that are referenced in the code but not yet fully implemented.
 
 > **Navigation**: [Back to README](../README.md) | [Reasoning Documentation](REASONING.md) | [Implementation Guide](IMPLEMENTATION-GUIDE.md)
 
