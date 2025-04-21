@@ -242,18 +242,14 @@ export class ContextPlugin implements IPlugin {
 
         try {
             // Use MCP to retrieve context from memory storage
-            const memoryIntent = {
-                action: 'memory:retrieve',
-                data: {
-                    id: contextId,
-                    options: {
-                        includeMetadata: true,
-                        ...options
-                    }
+            const memoryIntent = new Intent('memory:retrieve', {
+                id: contextId,
+                options: {
+                    includeMetadata: true,
+                    ...options
                 }
-            };
-
-            const result = await this.mcp.executeIntent(memoryIntent, context);
+            });
+            const result = await this.mcp.executeIntent(memoryIntent);
 
             if (!result.success) {
                 return {
@@ -304,22 +300,19 @@ export class ContextPlugin implements IPlugin {
             // Process each context item
             const processedItems = await Promise.all(contextItems.map(async (item) => {
                 // Calculate relevance using the reasoning plugin
-                const reasoningIntent = {
-                    action: 'reasoning:analyze',
-                    data: {
-                        content: item.content.text,
-                        options: {
-                            methodOptions: {
-                                analysisType: 'relevance'
-                            }
+                const reasoningIntent = new Intent('reasoning:analyze', {
+                    content: item.content.text,
+                    options: {
+                        methodOptions: {
+                            analysisType: 'relevance'
                         }
                     }
-                };
+                });
 
                 // Try to get relevance score using reasoning
                 let relevance = 0.5; // Default relevance
                 try {
-                    const reasoningResult = await this.mcp.executeIntent(reasoningIntent, context);
+                    const reasoningResult = await this.mcp.executeIntent(reasoningIntent);
                     if (reasoningResult.success && reasoningResult.data.conclusion) {
                         // Extract numerical relevance from conclusion if possible
                         const match = reasoningResult.data.conclusion.match(/(\d+(\.\d+)?)/);

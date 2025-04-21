@@ -1,5 +1,5 @@
 {
-    "name": "neurocore",
+    "name": "neucore",
     "version": "0.0.1",
     "description": "Modern AI framework for building context-aware AI applications",
     "main": "dist/index.js",

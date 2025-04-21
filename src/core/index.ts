@@ -1,5 +1,5 @@
 /**
- * Core module exports for NeuroCore
+ * Core module exports for Neucore
  */
 
 // Configuration

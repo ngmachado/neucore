@@ -1,9 +1,9 @@
 /**
- * Core types for the NeuroCore framework
+ * Core types for the Neucore framework
  */
 
 /**
- * Type exports for NeuroCore
+ * Type exports for Neucore
  */
 
 // Re-export all framework types

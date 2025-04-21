@@ -1,5 +1,5 @@
 /**
- * NeuroCore - Modern AI framework for building context-aware AI applications
+ * Neucore - Modern AI framework for building context-aware AI applications
  */
 
 // Core types

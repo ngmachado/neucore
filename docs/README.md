@@ -1,8 +1,8 @@
-# neucore Documentation
+# Neucore Documentation
 
 > **Navigation**: [Back to Main README](../README.md)
 
-This directory contains comprehensive documentation for the neucore framework.
+This directory contains comprehensive documentation for the Neucore framework.
 
 ## Documentation Index
 

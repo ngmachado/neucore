@@ -516,6 +516,7 @@ export class SocraticReasoner extends BaseReasoner {
 
         // Report progress
         this.reportSocraticProgress(
+            path,
             question,
             answer,
             questionCount + 1,
@@ -618,5 +619,290 @@ export class SocraticReasoner extends BaseReasoner {
         console.log(`[SOCRATIC] Generated synthesis (${result.length} chars): "${result.substring(0, 100)}..."`);
 
         return result;
+    }
+
+    /**
+     * Parses a conclusion text to extract the conclusion and confidence
+     * @private
+     */
+    private parseConclusion(synthesis: string): { conclusionText: string; confidenceValue: number } {
+        // Default values
+        let conclusionText = synthesis;
+        let confidenceValue = 0.7; // Default confidence
+
+        // Try to extract confidence if specified in format "CONFIDENCE: X.XX"
+        const confidenceMatch = synthesis.match(/CONFIDENCE:\s*(0\.\d+|\d+(\.\d+)?)/i);
+        if (confidenceMatch && confidenceMatch[1]) {
+            const extractedConfidence = parseFloat(confidenceMatch[1]);
+            if (!isNaN(extractedConfidence) && extractedConfidence >= 0 && extractedConfidence <= 1) {
+                confidenceValue = extractedConfidence;
+                // Remove the confidence line from the conclusion
+                conclusionText = synthesis.replace(/CONFIDENCE:\s*(0\.\d+|\d+(\.\d+)?)/i, '').trim();
+            }
+        }
+
+        // Try to extract conclusion if specified in format "CONCLUSION: ..."
+        const conclusionMatch = conclusionText.match(/CONCLUSION:\s*([\s\S]*)/i);
+        if (conclusionMatch && conclusionMatch[1]) {
+            conclusionText = conclusionMatch[1].trim();
+        }
+
+        return { conclusionText, confidenceValue };
+    }
+
+    /**
+     * Verifies a conclusion against insights
+     * @private
+     */
+    private async verifyConclusion(
+        query: string,
+        conclusion: string,
+        insights: string[],
+        options: ReasoningOptions & SocraticReasoningOptions
+    ): Promise<string> {
+        const verificationPrompt = `
+You are verifying a conclusion against collected insights.
+
+QUERY: ${query}
+
+CONCLUSION:
+${conclusion}
+
+INSIGHTS:
+${insights.map((insight, i) => `${i + 1}. ${insight}`).join('\n')}
+
+Your task is to evaluate if the conclusion is well-supported by the insights. Consider:
+1. Does the conclusion directly address the query?
+2. Is the conclusion consistent with the insights?
+3. Are there any insights that contradict the conclusion?
+4. Are there important aspects from the insights that were omitted?
+
+Then provide a verification score from 0.0 to 1.0, where:
+- 0.9-1.0: The conclusion is strongly supported by the insights
+- 0.7-0.9: The conclusion is well supported with minor omissions
+- 0.5-0.7: The conclusion is partially supported but has some issues
+- 0.3-0.5: The conclusion has significant omissions or problems
+- 0.0-0.3: The conclusion is not supported or contradicts the insights
+
+FORMAT:
+VERIFICATION: Your verification analysis
+SCORE: [Score between 0.0 and 1.0]
+`;
+
+        const params: CompletionParams = {
+            model: options.methodOptions?.model || 'gpt-4',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a critical evaluator who verifies that conclusions are well-supported by evidence.'
+                },
+                {
+                    role: 'user',
+                    content: verificationPrompt
+                }
+            ],
+            temperature: 0.3 // Low temperature for consistent, critical evaluation
+        };
+
+        const response = await this.modelProvider.generateCompletion(params);
+        const content = typeof response.content === 'string'
+            ? response.content
+            : response.content.map(item => item.text || '').join('');
+
+        return content;
+    }
+
+    /**
+     * Adjusts the confidence based on verification
+     * @private
+     */
+    private adjustConfidence(confidence: number, verification: string): number {
+        // Try to extract score from verification
+        const scoreMatch = verification.match(/SCORE:\s*(0\.\d+|\d+(\.\d+)?)/i);
+        if (scoreMatch && scoreMatch[1]) {
+            const verificationScore = parseFloat(scoreMatch[1]);
+            if (!isNaN(verificationScore) && verificationScore >= 0 && verificationScore <= 1) {
+                // Weight the original confidence (60%) and verification score (40%)
+                return confidence * 0.6 + verificationScore * 0.4;
+            }
+        }
+
+        // If no valid score found, slightly reduce confidence due to uncertainty
+        return Math.max(0.1, confidence * 0.9);
+    }
+
+    /**
+     * Generates follow-up questions based on current insights
+     * @private
+     */
+    private async generateFollowUpQuestions(
+        query: string,
+        currentQuestion: string,
+        answer: string,
+        previousInsights: string[],
+        options: ReasoningOptions & SocraticReasoningOptions
+    ): Promise<string[]> {
+        const maxQuestions = Math.min(options.maxQuestions || 5, 7); // Cap at 7 to avoid too many questions
+
+        const prompt = `
+You are generating follow-up questions using the Socratic method to explore the following query:
+QUERY: ${query}
+
+CURRENT QUESTION: ${currentQuestion}
+
+ANSWER TO CURRENT QUESTION:
+${answer}
+
+INSIGHTS ALREADY GATHERED:
+${previousInsights.map((insight, i) => `${i + 1}. ${insight}`).join('\n')}
+
+Based on the answer and existing insights, generate ${Math.min(3, maxQuestions)} follow-up questions that would help explore different dimensions of the query. Choose questions that:
+1. Address areas not yet covered in existing insights
+2. Dig deeper into important points raised in the answer
+3. Explore potential contradictions or alternatives
+4. Help build a comprehensive understanding of the topic
+
+FORMAT:
+QUESTION 1: [Clear, focused follow-up question]
+QUESTION 2: [Clear, focused follow-up question]
+QUESTION 3: [Clear, focused follow-up question]
+`;
+
+        const params: CompletionParams = {
+            model: options.methodOptions?.model || 'gpt-4',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You generate insightful follow-up questions using the Socratic method.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.7 // Higher temperature for creative questions
+        };
+
+        const response = await this.modelProvider.generateCompletion(params);
+        const content = typeof response.content === 'string'
+            ? response.content
+            : response.content.map(item => item.text || '').join('');
+
+        // Extract questions from the response
+        const questions: string[] = [];
+        const questionMatches = content.matchAll(/QUESTION \d+:\s*([^\n]+)/g);
+
+        for (const match of questionMatches) {
+            if (match[1] && match[1].trim()) {
+                questions.push(match[1].trim());
+            }
+        }
+
+        // If no questions were extracted using the format, fall back to line-by-line extraction
+        if (questions.length === 0) {
+            const lines = content.split('\n').filter(line => line.trim());
+            for (const line of lines) {
+                // Skip lines that are just headers or numbers
+                if (line.trim() && !line.match(/^(question|follow-up|#|\d+|-)$/i)) {
+                    // Remove leading numbers, bullets, etc.
+                    const cleaned = line.replace(/^[\d#\-\.\)\s]+/, '').trim();
+                    if (cleaned) {
+                        questions.push(cleaned);
+                    }
+                }
+            }
+        }
+
+        // Cap the number of questions
+        return questions.slice(0, maxQuestions);
+    }
+
+    /**
+     * Generates an answer to a question
+     * @private
+     */
+    private async generateAnswer(
+        query: string,
+        question: string,
+        previousInsights: string[],
+        options: ReasoningOptions & SocraticReasoningOptions
+    ): Promise<string> {
+        const prompt = `
+You are answering a question to help explore the following query:
+QUERY: ${query}
+
+QUESTION: ${question}
+
+${previousInsights.length > 0 ? `INSIGHTS ALREADY GATHERED:
+${previousInsights.map((insight, i) => `${i + 1}. ${insight}`).join('\n')}` : ''}
+
+Please provide a clear, insightful answer to this question. The answer should:
+1. Be thorough but concise
+2. Consider different perspectives when appropriate
+3. Provide factual information
+4. Acknowledge limitations or uncertainties
+5. Build upon existing insights when relevant
+
+FORMAT:
+ANSWER: [Your detailed response to the question]
+INSIGHT: [A single, concise sentence that captures the key insight from this answer]
+`;
+
+        const params: CompletionParams = {
+            model: options.methodOptions?.model || 'gpt-4',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You provide clear, insightful answers to questions in a Socratic exploration.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.5 // Balanced temperature for informed but somewhat creative answers
+        };
+
+        const response = await this.modelProvider.generateCompletion(params);
+        const content = typeof response.content === 'string'
+            ? response.content
+            : response.content.map(item => item.text || '').join('');
+
+        return content;
+    }
+
+    /**
+     * Reports progress in the Socratic reasoning process
+     * @private
+     */
+    private reportSocraticProgress(
+        currentPath: {
+            currentNode: any;
+            questions: string[];
+            insights: string[];
+        },
+        question: string,
+        answer: string,
+        questionNumber: number,
+        maxQuestions: number
+    ): void {
+        if (!this.progressCallback) {
+            return;
+        }
+
+        const currentStep = this.createStep(
+            ReasoningNodeType.QUESTION,
+            `Question ${questionNumber}/${maxQuestions}`,
+            `Q: ${question}\n\nA: ${answer}`
+        );
+
+        this.progressCallback({
+            currentStep,
+            stepNumber: questionNumber,
+            totalSteps: maxQuestions,
+            interimConclusion: currentPath.insights.length > 0
+                ? `Current insights: ${currentPath.insights.length}`
+                : undefined
+        });
     }
 }

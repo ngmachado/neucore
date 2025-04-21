@@ -1,11 +1,11 @@
 /**
- * Error handling system for NeuroCore
+ * Error handling system for Neucore
  */
 
 /**
- * Base error class for NeuroCore
+ * Base error class for Neucore
  */
-export class NeuroCoreError extends Error {
+export class NeucoreError extends Error {
     /**
      * Error code
      */
@@ -17,7 +17,7 @@ export class NeuroCoreError extends Error {
     details?: Record<string, any>;
 
     /**
-     * Create a new NeuroCore error
+     * Create a new Neucore error
      * @param message Error message
      * @param code Error code
      * @param details Additional error details
@@ -52,7 +52,7 @@ export class NeuroCoreError extends Error {
 /**
  * Error thrown when a validation fails
  */
-export class ValidationError extends NeuroCoreError {
+export class ValidationError extends NeucoreError {
     constructor(message: string, details?: Record<string, any>) {
         super(message, 'VALIDATION_ERROR', details);
     }
@@ -61,7 +61,7 @@ export class ValidationError extends NeuroCoreError {
 /**
  * Error thrown when a plugin operation fails
  */
-export class PluginError extends NeuroCoreError {
+export class PluginError extends NeucoreError {
     constructor(message: string, pluginName: string, details?: Record<string, any>) {
         super(message, 'PLUGIN_ERROR', {
             ...details,
@@ -73,7 +73,7 @@ export class PluginError extends NeuroCoreError {
 /**
  * Error thrown when a configuration issue occurs
  */
-export class ConfigurationError extends NeuroCoreError {
+export class ConfigurationError extends NeucoreError {
     constructor(message: string, details?: Record<string, any>) {
         super(message, 'CONFIGURATION_ERROR', details);
     }
@@ -82,7 +82,7 @@ export class ConfigurationError extends NeuroCoreError {
 /**
  * Error thrown when a database operation fails
  */
-export class DatabaseError extends NeuroCoreError {
+export class DatabaseError extends NeucoreError {
     constructor(message: string, details?: Record<string, any>) {
         super(message, 'DATABASE_ERROR', details);
     }
@@ -91,7 +91,7 @@ export class DatabaseError extends NeuroCoreError {
 /**
  * Error thrown when an initialization fails
  */
-export class InitializationError extends NeuroCoreError {
+export class InitializationError extends NeucoreError {
     constructor(message: string, component: string, details?: Record<string, any>) {
         super(message, 'INITIALIZATION_ERROR', {
             ...details,
@@ -103,7 +103,7 @@ export class InitializationError extends NeuroCoreError {
 /**
  * Error thrown when a network request fails
  */
-export class NetworkError extends NeuroCoreError {
+export class NetworkError extends NeucoreError {
     constructor(message: string, details?: Record<string, any>) {
         super(message, 'NETWORK_ERROR', details);
     }
@@ -112,7 +112,7 @@ export class NetworkError extends NeuroCoreError {
 /**
  * Error thrown when a provider operation fails
  */
-export class ProviderError extends NeuroCoreError {
+export class ProviderError extends NeucoreError {
     constructor(message: string, providerName: string, details?: Record<string, any>) {
         super(message, 'PROVIDER_ERROR', {
             ...details,
@@ -124,7 +124,7 @@ export class ProviderError extends NeuroCoreError {
 /**
  * Error thrown when an authentication fails
  */
-export class AuthenticationError extends NeuroCoreError {
+export class AuthenticationError extends NeucoreError {
     constructor(message: string, details?: Record<string, any>) {
         super(message, 'AUTHENTICATION_ERROR', details);
     }
@@ -133,7 +133,7 @@ export class AuthenticationError extends NeuroCoreError {
 /**
  * Error thrown when a rate limit is exceeded
  */
-export class RateLimitError extends NeuroCoreError {
+export class RateLimitError extends NeucoreError {
     constructor(message: string, details?: Record<string, any>) {
         super(message, 'RATE_LIMIT_ERROR', details);
     }

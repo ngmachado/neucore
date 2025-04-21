@@ -1,5 +1,5 @@
 /**
- * Runtime module for NeuroCore
+ * Runtime module for Neucore
  */
 
 export * from './context';

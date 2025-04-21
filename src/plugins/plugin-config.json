@@ -1,7 +1,7 @@
 {
-    "name": "Neurocore Plugins",
+    "name": "Neucore Plugins",
     "version": "0.1.0",
-    "description": "Core plugin collection for Neurocore",
+    "description": "Core plugin collection for Neucore",
     "exposedIntents": [
         "alfafrens:getMessages",
         "alfafrens:sendMessage",
@@ -29,7 +29,7 @@
             "embeddingModel": "text-embedding-3-large"
         },
         "database": {
-            "path": "data/neurocore.db"
+            "path": "data/neucore.db"
         }
     },
     "plugins": {
@@ -58,7 +58,7 @@
         },
         "document-manager": {
             "enabled": true,
-            "dbPath": "data/neurocore.db"
+            "dbPath": "data/neucore.db"
         }
     }
 }
