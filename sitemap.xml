@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://ngmachado.github.io/neurocore/</loc>
+         <loc>https://ngmachado.github.io/neucore/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/api/</loc>
+         <loc>https://ngmachado.github.io/neucore/api/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/getting-started/</loc>
+         <loc>https://ngmachado.github.io/neucore/getting-started/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/plugins/</loc>
+         <loc>https://ngmachado.github.io/neucore/plugins/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/reasoning/</loc>
+         <loc>https://ngmachado.github.io/neucore/reasoning/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/reasoning/chain-of-thought/</loc>
+         <loc>https://ngmachado.github.io/neucore/reasoning/chain-of-thought/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/reasoning/dialogic/</loc>
+         <loc>https://ngmachado.github.io/neucore/reasoning/dialogic/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/reasoning/one-shot/</loc>
+         <loc>https://ngmachado.github.io/neucore/reasoning/one-shot/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
     <url>
-         <loc>https://ngmachado.github.io/neurocore/reasoning/socratic/</loc>
+         <loc>https://ngmachado.github.io/neucore/reasoning/socratic/</loc>
          <lastmod>2025-04-26</lastmod>
     </url>
 </urlset>
