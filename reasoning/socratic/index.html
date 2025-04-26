@@ -1,0 +1,1279 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Neucore framework">
+      
+      
+        <meta name="author" content="Neucore Team">
+      
+      
+        <link rel="canonical" href="https://ngmachado.github.io/neurocore/reasoning/socratic/">
+      
+      
+        <link rel="prev" href="../chain-of-thought/">
+      
+      
+        <link rel="next" href="../dialogic/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>Socratic - Neucore Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+  
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+    
+    
+  
+  
+  <style>:root{--md-admonition-icon--note:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M64%2032C28.7%2032%200%2060.7%200%2096v320c0%2035.3%2028.7%2064%2064%2064h224V368c0-26.5%2021.5-48%2048-48h112V96c0-35.3-28.7-64-64-64zm384%20320H336c-8.8%200-16%207.2-16%2016v112l32-32%2064-64z%22/%3E%3C/svg%3E');--md-admonition-icon--abstract:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M96%200C43%200%200%2043%200%2096v320c0%2053%2043%2096%2096%2096h320c17.7%200%2032-14.3%2032-32s-14.3-32-32-32v-64c17.7%200%2032-14.3%2032-32V32c0-17.7-14.3-32-32-32H96m0%20384h256v64H96c-17.7%200-32-14.3-32-32s14.3-32%2032-32m32-240c0-8.8%207.2-16%2016-16h192c8.8%200%2016%207.2%2016%2016s-7.2%2016-16%2016H144c-8.8%200-16-7.2-16-16m16%2048h192c8.8%200%2016%207.2%2016%2016s-7.2%2016-16%2016H144c-8.8%200-16-7.2-16-16s7.2-16%2016-16%22/%3E%3C/svg%3E');--md-admonition-icon--info:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M256%20512a256%20256%200%201%200%200-512%20256%20256%200%201%200%200%20512m-40-176h24v-64h-24c-13.3%200-24-10.7-24-24s10.7-24%2024-24h48c13.3%200%2024%2010.7%2024%2024v88h8c13.3%200%2024%2010.7%2024%2024s-10.7%2024-24%2024h-80c-13.3%200-24-10.7-24-24s10.7-24%2024-24m40-208a32%2032%200%201%201%200%2064%2032%2032%200%201%201%200-64%22/%3E%3C/svg%3E');--md-admonition-icon--tip:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M480%2032c0-12.9-7.8-24.6-19.8-29.6S434.5.2%20425.3%209.3L381.7%2053c-48%2048-113.1%2075-181%2075H64c-35.3%200-64%2028.7-64%2064v96c0%2035.3%2028.7%2064%2064%2064v128c0%2017.7%2014.3%2032%2032%2032h64c17.7%200%2032-14.3%2032-32V352h8.7c67.9%200%20133%2027%20181%2075l43.6%2043.6c9.2%209.2%2022.9%2011.9%2034.9%206.9s19.8-16.6%2019.8-29.6V300.3c18.6-8.8%2032-32.5%2032-60.4s-13.4-51.6-32-60.4zm-64%2076.7v262.6C357.2%20317.8%20280.5%20288%20200.7%20288H192v-96h8.7c79.8%200%20156.5-29.8%20215.3-83.3%22/%3E%3C/svg%3E');--md-admonition-icon--success:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M438.6%20105.4c12.5%2012.5%2012.5%2032.8%200%2045.3l-256%20256c-12.5%2012.5-32.8%2012.5-45.3%200l-128-128c-12.5-12.5-12.5-32.8%200-45.3s32.8-12.5%2045.3%200L160%20338.7l233.4-233.3c12.5-12.5%2032.8-12.5%2045.3%200z%22/%3E%3C/svg%3E');--md-admonition-icon--question:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M256%20512a256%20256%200%201%200%200-512%20256%20256%200%201%200%200%20512m-86.2-346.7c7.9-22.3%2029.1-37.3%2052.8-37.3h58.3c34.9%200%2063.1%2028.3%2063.1%2063.1%200%2022.6-12.1%2043.5-31.7%2054.8L280%20264.4c-.2%2013-10.9%2023.6-24%2023.6-13.3%200-24-10.7-24-24v-13.5c0-8.6%204.6-16.5%2012.1-20.8l44.3-25.4c4.7-2.7%207.6-7.7%207.6-13.1%200-8.4-6.8-15.1-15.1-15.1h-58.3c-3.4%200-6.4%202.1-7.5%205.3l-.4%201.2c-4.4%2012.5-18.2%2019-30.6%2014.6s-19-18.2-14.6-30.6l.4-1.2zM224%20352a32%2032%200%201%201%2064%200%2032%2032%200%201%201-64%200%22/%3E%3C/svg%3E');--md-admonition-icon--warning:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M256%2032c14.2%200%2027.3%207.5%2034.5%2019.8l216%20368c7.3%2012.4%207.3%2027.7.2%2040.1S486.3%20480%20472%20480H40c-14.3%200-27.6-7.7-34.7-20.1s-7-27.8.2-40.1l216-368C228.7%2039.5%20241.8%2032%20256%2032m0%20128c-13.3%200-24%2010.7-24%2024v112c0%2013.3%2010.7%2024%2024%2024s24-10.7%2024-24V184c0-13.3-10.7-24-24-24m32%20224a32%2032%200%201%200-64%200%2032%2032%200%201%200%2064%200%22/%3E%3C/svg%3E');--md-admonition-icon--failure:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M459.1%2052.4%20442.6%206.5c-1.9-3.9-6.1-6.5-10.5-6.5s-8.5%202.6-10.4%206.5l-16.5%2045.9-46%2016.8c-4.3%201.6-7.3%205.9-7.2%2010.4%200%204.5%203%208.7%207.2%2010.2l45.7%2016.8%2016.8%2045.8c1.5%204.4%205.8%207.5%2010.4%207.5s8.9-3.1%2010.4-7.5l16.5-45.8%2045.7-16.8c4.2-1.5%207.2-5.7%207.2-10.2%200-4.6-3-8.9-7.2-10.4zm-132.4%2053c-12.5-12.5-32.8-12.5-45.3%200l-2.9%202.9c-22-8-45.8-12.3-70.5-12.3C93.1%2096%200%20189.1%200%20304s93.1%20208%20208%20208%20208-93.1%20208-208c0-24.7-4.3-48.5-12.2-70.5l2.9-2.9c12.5-12.5%2012.5-32.8%200-45.3l-80-80zM200%20192c-57.4%200-104%2046.6-104%20104v8c0%208.8-7.2%2016-16%2016s-16-7.2-16-16v-8c0-75.1%2060.9-136%20136-136h8c8.8%200%2016%207.2%2016%2016s-7.2%2016-16%2016z%22/%3E%3C/svg%3E');--md-admonition-icon--danger:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20512%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M416%20398.9c58.5-41.1%2096-104.1%2096-174.9C512%20100.3%20397.4%200%20256%200S0%20100.3%200%20224c0%2070.7%2037.5%20133.8%2096%20174.9V464c0%2026.5%2021.5%2048%2048%2048h48v-48c0-8.8%207.2-16%2016-16s16%207.2%2016%2016v48h64v-48c0-8.8%207.2-16%2016-16s16%207.2%2016%2016v48h48c26.5%200%2048-21.5%2048-48v-65.1M96%20256a64%2064%200%201%201%20128%200%2064%2064%200%201%201-128%200m256-64a64%2064%200%201%201%200%20128%2064%2064%200%201%201%200-128%22/%3E%3C/svg%3E');--md-admonition-icon--bug:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20640%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M320%200c17.7%200%2032%2014.3%2032%2032v64h120c39.8%200%2072%2032.2%2072%2072v272c0%2039.8-32.2%2072-72%2072H168c-39.8%200-72-32.2-72-72V168c0-39.8%2032.2-72%2072-72h120V32c0-17.7%2014.3-32%2032-32M208%20384c-8.8%200-16%207.2-16%2016s7.2%2016%2016%2016h32c8.8%200%2016-7.2%2016-16s-7.2-16-16-16zm96%200c-8.8%200-16%207.2-16%2016s7.2%2016%2016%2016h32c8.8%200%2016-7.2%2016-16s-7.2-16-16-16zm96%200c-8.8%200-16%207.2-16%2016s7.2%2016%2016%2016h32c8.8%200%2016-7.2%2016-16s-7.2-16-16-16zM264%20256a40%2040%200%201%200-80%200%2040%2040%200%201%200%2080%200m152%2040a40%2040%200%201%200%200-80%2040%2040%200%201%200%200%2080M48%20224h16v192H48c-26.5%200-48-21.5-48-48v-96c0-26.5%2021.5-48%2048-48m544%200c26.5%200%2048%2021.5%2048%2048v96c0%2026.5-21.5%2048-48%2048h-16V224z%22/%3E%3C/svg%3E');--md-admonition-icon--example:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M288%200H128c-17.7%200-32%2014.3-32%2032s14.3%2032%2032%2032v132.8c0%2011.8-3.3%2023.5-9.5%2033.5L10.3%20406.2C3.6%20417.2%200%20429.7%200%20442.6%200%20480.9%2031.1%20512%2069.4%20512h309.2c38.3%200%2069.4-31.1%2069.4-69.4%200-12.8-3.6-25.4-10.3-36.4L329.5%20230.4c-6.2-10.1-9.5-21.7-9.5-33.5V64c17.7%200%2032-14.3%2032-32S337.7%200%20320%200zm-96%20196.8V64h64v132.8c0%2023.7%206.6%2046.9%2019%2067.1l34.5%2056.1h-171l34.5-56.1c12.4-20.2%2019-43.4%2019-67.1%22/%3E%3C/svg%3E');--md-admonition-icon--quote:url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20448%20512%22%3E%3C%21--%21%20Font%20Awesome%20Free%206.7.2%20by%20%40fontawesome%20-%20https%3A//fontawesome.com%20License%20-%20https%3A//fontawesome.com/license/free%20%28Icons%3A%20CC%20BY%204.0%2C%20Fonts%3A%20SIL%20OFL%201.1%2C%20Code%3A%20MIT%20License%29%20Copyright%202024%20Fonticons%2C%20Inc.--%3E%3Cpath%20d%3D%22M0%20216C0%20149.7%2053.7%2096%20120%2096h8c17.7%200%2032%2014.3%2032%2032s-14.3%2032-32%2032h-8c-30.9%200-56%2025.1-56%2056v8h64c35.3%200%2064%2028.7%2064%2064v64c0%2035.3-28.7%2064-64%2064H64c-35.3%200-64-28.7-64-64V216m256%200c0-66.3%2053.7-120%20120-120h8c17.7%200%2032%2014.3%2032%2032s-14.3%2032-32%2032h-8c-30.9%200-56%2025.1-56%2056v8h64c35.3%200%2064%2028.7%2064%2064v64c0%2035.3-28.7%2064-64%2064h-64c-35.3%200-64-28.7-64-64V216%22/%3E%3C/svg%3E');}</style>
+
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#socratic-reasoner" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Neucore Documentation" class="md-header__button md-logo" aria-label="Neucore Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Neucore Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Socratic
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ngmachado/neurocore" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reasoning
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../plugins/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Plugins
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../api/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  API Reference
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Neucore Documentation" class="md-nav__button md-logo" aria-label="Neucore Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Neucore Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ngmachado/neurocore" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Reasoning
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Reasoning
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chain-of-thought/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Chain of Thought
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Socratic
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Socratic
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reasoning-graph-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reasoning Graph Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prompting-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prompting Approach
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refinement-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refinement Process
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-with-other-reasoners" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison with Other Reasoners
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-reasoning-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Reasoning Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dialogic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dialogic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../one-shot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    One Shot
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Plugins
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Use
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Usage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reasoning-graph-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reasoning Graph Structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prompting-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prompting Approach
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refinement-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Refinement Process
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-with-other-reasoners" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparison with Other Reasoners
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-reasoning-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Reasoning Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="socratic-reasoner">Socratic Reasoner<a class="headerlink" href="#socratic-reasoner" title="Permanent link">&para;</a></h1>
+<p>The Socratic reasoner uses systematic questioning to explore problems deeply, uncovering underlying assumptions, testing hypotheses, and refining knowledge through iterative inquiry. It mimics the Socratic method's approach of guided discovery through sequential questions and answers.</p>
+<div class="admonition tip">
+<p class="admonition-title">Powerful for Deep Exploration</p>
+<p>Socratic reasoning excels at situations requiring thorough examination of complex topics, challenging assumptions, and reaching nuanced understanding through guided exploration.</p>
+</div>
+<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Questioning approach</strong> - Uses targeted questions to guide reasoning</li>
+<li><strong>Assumption testing</strong> - Identifies and examines underlying assumptions</li>
+<li><strong>Depth over breadth</strong> - Probes deeply into core issues</li>
+<li><strong>Hypothesis refinement</strong> - Iteratively improves understanding</li>
+<li><strong>Critical thinking</strong> - Challenges initial beliefs to reach better conclusions</li>
+</ul>
+<h2 id="when-to-use">When to Use<a class="headerlink" href="#when-to-use" title="Permanent link">&para;</a></h2>
+<p>Socratic reasoning is particularly effective for:</p>
+<ul>
+<li>Complex problems with hidden assumptions</li>
+<li>Deeply exploring unfamiliar domains</li>
+<li>Challenging established thinking</li>
+<li>Teaching and learning scenarios</li>
+<li>Ethical or philosophical inquiries</li>
+</ul>
+<h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">createNeuroCore</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;neucore&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ReasoningMethod</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;neucore/reasoning&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kd">const</span><span class="w"> </span><span class="nx">core</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createNeuroCore</span><span class="p">();</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">// Using the Socratic reasoner</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">core</span><span class="p">.</span><span class="nx">reasoning</span><span class="p">.</span><span class="nx">solve</span><span class="p">({</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="nx">problem</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;What are the ethical implications of using AI for automated hiring decisions?&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="kt">ReasoningMethod.SOCRATIC</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nx">options</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nx">temperature</span><span class="o">:</span><span class="w"> </span><span class="kt">0.3</span><span class="w"> </span><span class="c1">// Higher temperature for more exploratory reasoning</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">});</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">solution</span><span class="p">);</span><span class="w"> </span><span class="c1">// Final conclusion</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">.</span><span class="nx">conversation</span><span class="p">);</span><span class="w"> </span><span class="c1">// The full questioning sequence</span>
+</code></pre></div>
+<h2 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h2>
+<p>The Socratic reasoner supports several configuration options:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">core</span><span class="p">.</span><span class="nx">reasoning</span><span class="p">.</span><span class="nx">solve</span><span class="p">({</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">problem</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Should cities ban private vehicles in downtown areas to reduce emissions?&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="kt">ReasoningMethod.SOCRATIC</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">options</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nx">temperature</span><span class="o">:</span><span class="w"> </span><span class="kt">0.4</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nx">methodOptions</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">      </span><span class="nx">model</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">,</span><span class="w">               </span><span class="c1">// Specific model to use</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nx">maxQuestions</span><span class="o">:</span><span class="w"> </span><span class="kt">12</span><span class="p">,</span><span class="w">              </span><span class="c1">// Maximum number of questions</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="nx">questionDepth</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;high&quot;</span><span class="p">,</span><span class="w">         </span><span class="c1">// How deeply to probe (low/medium/high)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nx">exploreCounterarguments</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span><span class="w"> </span><span class="c1">// Consider opposing viewpoints</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nx">focusAreas</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w">                  </span><span class="c1">// Specific angles to explore</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">        </span><span class="s2">&quot;environmental impact&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">        </span><span class="s2">&quot;economic consequences&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">        </span><span class="s2">&quot;accessibility concerns&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="s2">&quot;implementation challenges&quot;</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">      </span><span class="p">],</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">      </span><span class="nx">avoidAssumptions</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span><span class="w">        </span><span class="c1">// Critically examine assumptions</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nx">requireEvidence</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w">          </span><span class="c1">// Ask for supporting evidence</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="p">});</span>
+</code></pre></div>
+<h2 id="implementation-details">Implementation Details<a class="headerlink" href="#implementation-details" title="Permanent link">&para;</a></h2>
+<h3 id="reasoning-graph-structure">Reasoning Graph Structure<a class="headerlink" href="#reasoning-graph-structure" title="Permanent link">&para;</a></h3>
+<p>The Socratic reasoner produces a tree-structured reasoning graph with:</p>
+<ol>
+<li>The problem statement node (type: <code>ReasoningNodeType.QUESTION</code>)</li>
+<li>Multiple question nodes branching from the original problem (type: <code>ReasoningNodeType.QUESTION</code>)</li>
+<li>Answer nodes responding to each question (type: <code>ReasoningNodeType.INFERENCE</code>)</li>
+<li>Additional questions that follow from previous answers, creating exploration paths</li>
+<li>A synthesis node that collects insights from all paths (type: <code>ReasoningNodeType.SYNTHESIS</code>)</li>
+</ol>
+<p>This structure enables systematic exploration of multiple dimensions of a problem.</p>
+<h3 id="prompting-approach">Prompting Approach<a class="headerlink" href="#prompting-approach" title="Permanent link">&para;</a></h3>
+<p>The Socratic reasoner uses specialized prompts that:</p>
+<ul>
+<li>Frame incisive questions to probe for deeper understanding</li>
+<li>Challenge initial assumptions and surface biases</li>
+<li>Request clarification on unclear or ambiguous aspects</li>
+<li>Explore implications and consequences</li>
+<li>Guide toward examining evidence and counterarguments</li>
+</ul>
+<h3 id="refinement-process">Refinement Process<a class="headerlink" href="#refinement-process" title="Permanent link">&para;</a></h3>
+<p>When using the <code>continueReasoning</code> method, the Socratic reasoner can:</p>
+<ol>
+<li>Pose additional questions to explore new angles</li>
+<li>Refine previous answers based on new insights</li>
+<li>Probe more deeply into promising areas</li>
+<li>Challenge inconsistencies identified in earlier responses</li>
+<li>Synthesize a more comprehensive conclusion</li>
+</ol>
+<h2 id="comparison-with-other-reasoners">Comparison with Other Reasoners<a class="headerlink" href="#comparison-with-other-reasoners" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Socratic</th>
+<th>Chain of Thought</th>
+<th>Dialogic</th>
+<th>One Shot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Structure</td>
+<td>Questioning Tree</td>
+<td>Linear</td>
+<td>Debate</td>
+<td>Direct</td>
+</tr>
+<tr>
+<td>Transparency</td>
+<td>Very High</td>
+<td>High</td>
+<td>High</td>
+<td>Low</td>
+</tr>
+<tr>
+<td>Reasoning Style</td>
+<td>Exploratory</td>
+<td>Sequential</td>
+<td>Adversarial</td>
+<td>Direct</td>
+</tr>
+<tr>
+<td>Best For</td>
+<td>Deep exploration</td>
+<td>Step-by-step problems</td>
+<td>Competing viewpoints</td>
+<td>Simple queries</td>
+</tr>
+<tr>
+<td>Token Usage</td>
+<td>High</td>
+<td>Medium</td>
+<td>Highest</td>
+<td>Lowest</td>
+</tr>
+</tbody>
+</table>
+<h2 id="example-reasoning-output">Example Reasoning Output<a class="headerlink" href="#example-reasoning-output" title="Permanent link">&para;</a></h2>
+<p>Below is an example of the output structure produced by the Socratic reasoner:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Problem: What are the ethical implications of using AI for automated hiring decisions?
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Q1: What are the potential benefits of using AI for hiring decisions?
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>A1: AI-based hiring systems could potentially reduce human biases in the selection process, process applications more efficiently, provide consistent evaluation criteria across all candidates, reduce time-to-hire, and potentially identify promising candidates that might be overlooked by traditional screening methods. They can analyze larger datasets than humans and may identify non-obvious patterns that correlate with job success.
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>Q2: What biases might AI hiring systems perpetuate or introduce?
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>A2: AI systems trained on historical hiring data may perpetuate existing biases in that data. If a company historically hired predominantly from certain demographics, the AI may learn to prefer similar candidates. AI can also introduce new biases based on proxy variables that correlate with protected characteristics, even if those characteristics aren&#39;t explicitly considered. Problems include:
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>- Training data bias (reflecting historical discrimination)
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>- Feature selection bias (using variables that disadvantage certain groups)
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>- Algorithmic bias (models that inadvertently penalize certain characteristics)
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>- Lack of contextual understanding (missing important nuances in applications)
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>Q3: How transparent are AI hiring decisions to candidates?
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>A3: Most commercial AI hiring systems operate as &quot;black boxes&quot; where candidates receive little or no explanation for why they were rejected. This lack of transparency raises several concerns:
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>- Candidates cannot effectively challenge or appeal decisions
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>- Companies may not understand the actual criteria being used
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>- Regulatory compliance becomes difficult to verify
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>- Trust in the hiring process is diminished
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>Some companies are working on &quot;explainable AI&quot; for hiring, but these approaches remain limited and are not widely implemented.
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>Q4: What regulatory frameworks exist or should exist for AI in hiring?
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>A4: Current regulatory frameworks vary significantly by jurisdiction:
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>- In the EU, GDPR gives candidates rights to explanation and data access
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>- In the US, EEOC guidelines prohibit discriminatory hiring but specific AI regulations are still developing
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>- Illinois has passed the Artificial Intelligence Video Interview Act
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>- New York City passed a law requiring AI hiring tools to undergo bias audits
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>Ideal frameworks might include mandatory transparency requirements, regular algorithmic impact assessments, rights to human review, and limitations on what types of data can be considered.
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>Q5: Who bears responsibility when AI hiring systems make unfair or discriminatory decisions?
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>A5: Responsibility potentially falls on multiple parties:
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>- The company using the AI system (primary legal responsibility)
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>- The developers/vendors of the AI system (potential product liability)
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>- Data providers (if they supplied biased training data)
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>- Regulatory bodies (failure to provide adequate oversight)
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>Courts and legal systems are still developing frameworks for determining liability. Companies cannot simply delegate responsibility to algorithms or vendors.
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>Q6: How might AI hiring systems affect candidate experience and labor market dynamics?
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a>A6: AI systems could significantly impact:
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>- Candidate behaviors (optimizing for algorithmic screening rather than authentic presentation)
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a>- Economic opportunity distribution (potentially concentrating opportunities for those who understand or can game the systems)
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a>- Labor market accessibility (creating new barriers for those without digital literacy)
+<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>- Psychological impacts (dehumanization of the hiring process)
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a>- Job search strategies (requiring new approaches to stand out to algorithms)
+<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a>
+<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a>Solution: AI-based hiring systems present complex ethical implications that require careful consideration. While they offer potential benefits in efficiency and consistency, they risk perpetuating or introducing biases, lack transparency, and raise questions about responsibility and accountability. Effective implementation requires robust regulatory frameworks, regular auditing for bias, transparency in decision criteria, and maintaining human oversight. Organizations must balance technological capabilities with ethical considerations, ensuring that AI augments rather than replaces human judgment in hiring processes. As these technologies evolve, ongoing assessment of their societal impact remains essential to ensure they enhance rather than undermine fairness in employment opportunities.
+</code></pre></div>
+<p>Here's another example demonstrating a different type of problem:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Problem: Should cities ban private vehicles from downtown areas to reduce emissions?
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Q1: What evidence exists regarding the environmental impact of banning private vehicles from downtown areas?
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>A1: Several cities have implemented or tested such bans with measurable results:
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>- Madrid saw a 38% reduction in nitrogen dioxide levels after restricting downtown access
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>- Oslo reported a 19% reduction in carbon emissions after implementing car-free zones
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>- Paris documented 15% less pollution on car-free days in the city center
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>- Studies project that comprehensive bans could reduce urban transportation emissions by 20-30%
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>However, these results vary significantly based on city design, alternative transportation options, and enforcement approaches.
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>Q2: What economic effects might result from downtown vehicle bans?
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>A2: Economic impacts are mixed and context-dependent:
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>- Retail: Some cities report initial declines in retail sales (5-15%) followed by recovery or growth as pedestrian traffic increases
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>- Property values: Commercial properties in pedestrianized areas often see 10-30% increases in value
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>- Business costs: Delivery and logistics expenses typically increase by 15-25%
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>- Tourism: Car-free areas often see 20-40% increases in tourism spending
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>- Tax revenue: Changes in parking revenue must be offset by other sources
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>Studies from Copenhagen, Oslo, and Barcelona suggest overall neutral to positive economic effects after adjustment periods, but specific impacts vary by industry and location.
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>Q3: How do vehicle bans affect accessibility for different population groups?
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>A3: Accessibility impacts vary significantly across demographics:
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>- Elderly and disabled populations may face reduced mobility without careful accommodation
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>- Lower-income workers who commute from outlying areas may bear disproportionate burdens
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>- Families with young children report mixed experiences depending on alternative transport quality
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>- Downtown residents generally report improved quality of life (75%+ approval in multiple surveys)
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>The equity of outcomes depends heavily on:
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>- Quality and affordability of public transportation alternatives
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>- Accommodation policies for those with mobility challenges
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>- Economic support for affected businesses during transition periods
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>- Exemptions for essential services and certain populations
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>Q4: What alternatives exist to outright bans on private vehicles?
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>A4: Several graduated approaches have shown promising results:
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>- Congestion pricing (London reduced traffic by 15% with this approach)
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>- Low-emission zones with fees for higher-polluting vehicles
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a>- Time-restricted access (allowing vehicles only during certain hours)
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>- Gradual reduction of parking spaces while expanding pedestrian areas
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>- Incentivizing electric vehicles while restricting combustion engines
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a>- Improved public transit combined with park-and-ride facilities
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>These alternatives may offer more flexible paths to emission reduction while addressing economic and accessibility concerns.
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>Q5: How do residents&#39; attitudes change after implementation of vehicle restrictions?
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a>A5: Attitude shifts follow consistent patterns across multiple cities:
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a>- Pre-implementation: Strong opposition (typically 60-70% against)
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a>- 6 months post-implementation: Mixed views (40-50% support)
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a>- 18+ months post-implementation: Strong support (65-80% in favor)
+<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a>This pattern appeared in Stockholm, Oslo, Madrid, and other cities that tracked public opinion.
+<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a>Key factors in acceptance include:
+<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a>- Quality of implementation and alternatives provided
+<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a>- Clear communication about goals and benefits
+<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a>- Visible improvements in air quality and noise levels
+<a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a>- Accommodation of essential needs and special cases
+<a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a>
+<a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a>Q6: What implementation challenges do cities face when restricting vehicles?
+<a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a>A6: Common implementation challenges include:
+<a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a>- Initial enforcement difficulties (requiring 6-12 months of consistent enforcement)
+<a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a>- Technical infrastructure needs (cameras, barriers, payment systems)
+<a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a>- Political resistance and potential changes in administration
+<a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a>- Legal challenges from affected businesses or advocacy groups
+<a id="__codelineno-3-61" name="__codelineno-3-61" href="#__codelineno-3-61"></a>- Need for comprehensive transit alternatives before implementation
+<a id="__codelineno-3-62" name="__codelineno-3-62" href="#__codelineno-3-62"></a>- Coordination with surrounding municipalities to prevent problem-shifting
+<a id="__codelineno-3-63" name="__codelineno-3-63" href="#__codelineno-3-63"></a>Cities that phased in restrictions gradually, with clear exemptions and strong alternatives in place first, reported smoother implementations.
+<a id="__codelineno-3-64" name="__codelineno-3-64" href="#__codelineno-3-64"></a>
+<a id="__codelineno-3-65" name="__codelineno-3-65" href="#__codelineno-3-65"></a>Solution: The question of banning private vehicles from downtown areas requires balancing environmental benefits against economic, accessibility, and implementation considerations. Evidence suggests such policies can significantly reduce emissions and ultimately gain public support, but success depends on thoughtful implementation. Rather than universal bans, cities should consider graduated approaches tailored to local contexts—potentially including congestion pricing, time-restricted access, or low-emission zones. Implementation should prioritize robust public transportation alternatives, accessibility accommodations, and stakeholder engagement. The most successful approaches involve phased implementation with clear metrics for success, exemptions for essential services and those with mobility needs, and ongoing adjustment based on measured outcomes. While environmental benefits are clear, the path to achieving them must be equitable, economically sustainable, and adapted to each city&#39;s unique characteristics.
+</code></pre></div>
+<h2 id="related-resources">Related Resources<a class="headerlink" href="#related-resources" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../getting-started/">Getting Started</a></li>
+<li><a href="../../api/">API Reference</a></li>
+<li><a href="../one-shot/">One Shot Reasoner</a></li>
+<li><a href="../chain-of-thought/">Chain of Thought Reasoner</a></li>
+<li><a href="../dialogic/">Dialogic Reasoner</a> </li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/ngmachado/neurocore" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tracking", "navigation.instant", "navigation.tabs", "navigation.indexes", "content.code.copy", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

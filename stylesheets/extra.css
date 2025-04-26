@@ -1,0 +1,58 @@
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.grid-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--md-primary-fg-color--light, #5472d3);
+    color: var(--md-primary-bg-color, white);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.grid-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--md-primary-bg-color, white);
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.card-title i {
+    margin-right: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.grid-card p {
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+}
+
+.md-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--md-primary-bg-color, white);
+    color: var(--md-primary-fg-color, #3f51b5);
+    border-radius: 0.25rem;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    margin-top: auto;
+}
+
+.md-button:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
